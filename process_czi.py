@@ -63,6 +63,8 @@ def get_czi_info(czi_file):
 
         
 def _get_chunk_bbox(czi_file, max_size_chunk_gb=30):
+    # For each sequence get a vector that contains information for chunking.
+    # So it returns a list of vectors.
     max_size_chunk = max_size_chunk_gb * 1024**3
     if isinstance(czi_file, str):
         czi_file = aicspylibczi.CziFile(czi_file)  
@@ -87,6 +89,8 @@ def _get_chunk_bbox(czi_file, max_size_chunk_gb=30):
 
 
 def _get_channel_idx(metadata, channel_name):
+    # Get the idx of the channel in the array. 
+    # Usually to get the idx that corresponds to GFP fro segmentation or DAPI for max projection.
     display_setting = metadata.find(".//DisplaySetting")
     channels = display_setting.find("Channels")
     channel_names = [channel.get("Name") for channel in channels.findall("Channel")]
@@ -132,7 +136,6 @@ def chunk_and_save_czi(czi_file, save_folderpath, max_size_chunk_gb = 30, channe
             nb_chunks = len(xy_coordinates)
             print(f"There are {nb_chunks} .tiff files to save")
             for nn, xy in enumerate(xy_coordinates):
-                print(xy)
                 x_min = xy[0]
                 x_max = x_min + l
                 y_min = xy[1]
@@ -150,13 +153,12 @@ def chunk_and_save_czi(czi_file, save_folderpath, max_size_chunk_gb = 30, channe
                                     for z in range(z_len)]
                 chunk_image = np.stack(z_stack_list, axis=0)
                 chunk_image = np.transpose(chunk_image, (0, 2, 1))
-                print(chunk_image.shape)
-                save_filepath = os.path.join(save_folderpath, f"seq_{s}_chunk_{nn}:{nb_chunks}_x:{(x_min, x_max)}_y:{(y_min, y_max)}.tiff")
+                save_filepath = os.path.join(save_folderpath, f"microglia_seq_{s}_chunk_{nn}_{nb_chunks}_x__{x_min}_{x_max}__y__{y_min}_{y_max}__.tiff")
                 # Save the chunk as a TIFF file
                 tifffile.imsave(save_filepath, chunk_image)
 
 
-def maxproject_for_registration(czi_file, channel_name = 'DAPI'):
+def maxproject_for_registration(czi_file, save_folderpath, channel_name = 'DAPI'):
     if isinstance(czi_file, str):
         czi_file = aicspylibczi.CziFile(czi_file)
     # Take the correct chanel that contains the nucleus
@@ -167,12 +169,15 @@ def maxproject_for_registration(czi_file, channel_name = 'DAPI'):
     sequences = czi_file.get_dims_shape()
     nb_seq = len(sequences)
     print(f"There are {nb_seq} tissue slices in this file")
+
+    # Create the folder were files are stored if doesn't exist.
+    os.makedirs(save_folderpath, exist_ok = True)
     maxproj_list = []
     for s, seq in enumerate(sequences):
         if seq['S'][1]-seq['S'][0] == 1:
             z_len = sequences[s]['Z'][1] - sequences[s]['Z'][0]  # Depth (Z-axis)
             x_min, y_min, w, h = bbox[s].x, bbox[s].y, bbox[s].w, bbox[s].h  # Bounding box details
-            previous_image = np.zeros(w, h)
+            previous_image = np.zeros((w, h))
             previous_image = downsample_by_2(previous_image)
             for z in range(z_len):
                 z_image = czi_file.read_mosaic(region = (x_min, y_min, w, h), 
@@ -182,7 +187,11 @@ def maxproject_for_registration(czi_file, channel_name = 'DAPI'):
                                                 dtype = np.uint8,
                                                 )[0][0] # The function returns an array (1,1,y,x)
                 z_image = downsample_by_2(z_image)
-                z_image = np.transpose(z_image, (0, 2, 1))
+                z_image = np.transpose(z_image, (1, 0))
                 previous_image = np.maximum(z_image, previous_image)
-            maxproj_list.append(previous_image)
-    return maxproj_list
+
+            # maxproj_list.append(previous_image)
+            save_filepath = os.path.join(save_folderpath, f"zmax_proj_seq_{s}.tiff")
+            # Save the chunk as a TIFF file
+            tifffile.imsave(save_filepath, previous_image)
+    return 

@@ -1,6 +1,7 @@
 import glob
 import numpy as np
 import pandas as pd
+from PIL import Image
 
 def get_images_infoframe(folderpath, extension =".czi", conditions = []):
     # get all the file paths in folder_location
@@ -23,3 +24,13 @@ def get_images_infoframe(folderpath, extension =".czi", conditions = []):
     print(f"There are {nb_files} files in folder_location")
 
     return info_frame
+
+
+
+def save_array(array, folder_path, save_name, extension, grey_scale=np.uint8):
+    array = array.astype(grey_scale)  # Convert to uint8
+
+    # Save as PNG
+    image = Image.fromarray(array)
+    file_path = folder_path + "/" + save_name + extension
+    image.save(file_path)
