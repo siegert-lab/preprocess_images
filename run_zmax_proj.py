@@ -1,5 +1,5 @@
-from process_czi import get_czi_info, chunk_and_save_czi, maxproject_for_registration
-from process_ims import get_ims_info, chunk_and_save_ims 
+from process_czi import get_czi_info, maxproject_for_registration
+from process_ims import get_ims_info 
 
 from io_images import get_images_infoframe
 
@@ -20,23 +20,15 @@ extension = '.czi'
 # The root folder where .tiff files will be saved.
 # result_folderpath = 'results'
 # ON WINDOWS
-result_folderpath = r"\\fs.ista.ac.at\drives\aventuri\archive\siegegrp\AlVe\MORPHOMICS2.0_MICROGLIA_BRAIN_ATLAS"
-
-# Size of the chunk in GB
-chunk_size = 3
-
-# Channel you want to segment microglia (usually EGFP or IBA1 or 1).
-channel_name = 'EGFP'
+result_foldername = r"\zmax_projections_test"
+result_folderpath = folderpath + result_foldername
 
 # Get a pd.DataFrame that contains information about the different .czi files in the root folder.
 # Most important is the name and the path of the .czi files.
-# TODO 
-    # Add info like the number of sequence, the idx of the channels of interest, 
-    # a new name that is link to something like the animal, age of animal, order of the slice in the sequence of slices.
 infoframe = get_images_infoframe(folderpath, 
                                  conditions=conditions, 
                                  extension=extension, 
-                                 windows=windows)
+                                 windows=True)
 
 if windows:
     char = "\\"
@@ -45,23 +37,19 @@ else:
 
 for i, row in infoframe.iterrows():
     file_name = row['file_name']
-    save_foldername = file_name[:-4]
+    save_foldername = file_name[:-len(extension)]
     save_folderpath = result_folderpath + char + save_foldername
 
     file_path = row['file_path']
-    print(f"The file {save_foldername} is selected for processing")
-    extension = file_name[-4:]
-    print(file_name)
+    print(f"The file {file_name} is selected for processing")
+    extension = file_name[-len(extension):]
     if 'czi' in extension:
-        get_czi_info(file_path)
-        chunk_and_save_czi(file_path, save_folderpath, 
-                            max_size_chunk_gb = chunk_size, channel_name = channel_name)
-        maxproject_for_registration(file_path, save_folderpath, channel_name = 'DAPI')
-
-        
+        czi_file = get_czi_info(file_path)
+        maxproject_for_registration(czi_file, 
+                                    save_folderpath, 
+                                    channel_name = 'DAPI')
     elif 'ims' in extension:
         get_ims_info(file_path)
-        chunk_and_save_ims(file_path, save_folderpath, 
-                           max_size_chunk_gb = chunk_size, channel_idx = 1)
+        print("No need to zmax project retina this file format.")
     else:
-        print("No function to chunk this file format.")
+        print("No function to process this file format.")
