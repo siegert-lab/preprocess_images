@@ -8,7 +8,7 @@ from typing import BinaryIO, Tuple, Union
 import numpy as np
 import xml.etree.ElementTree as ET
 
-from . import types
+from . import aicspylibczi_types
 
 
 class CziFile(object):
@@ -50,7 +50,7 @@ class CziFile(object):
 
     def __init__(
         self,
-        czi_filename: types.FileLike,
+        czi_filename: aicspylibczi_types.FileLike,
         verbose: bool = False,
     ):
         # Convert to BytesIO (bytestream)
@@ -417,7 +417,7 @@ class CziFile(object):
         return self.reader.is_mosaic()
 
     @staticmethod
-    def convert_to_buffer(file: types.FileLike) -> Union[BinaryIO, np.ndarray]:
+    def convert_to_buffer(file: aicspylibczi_types.FileLike) -> Union[BinaryIO, np.ndarray]:
         if isinstance(file, (str, Path)):
             # This will both fully expand and enforce that the filepath exists
             f = Path(file).expanduser().resolve(strict=True)

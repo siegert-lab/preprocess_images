@@ -20,7 +20,7 @@ extension = '.czi'
 # The root folder where .tiff files will be saved.
 # result_folderpath = 'results'
 # ON WINDOWS
-result_foldername = r"\zmax_projections_test"
+result_foldername = r"\zmax_projections"
 result_folderpath = folderpath + result_foldername
 
 # Get a pd.DataFrame that contains information about the different .czi files in the root folder.
