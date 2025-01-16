@@ -1,5 +1,5 @@
-from process_czi import get_czi_info, maxproject_for_registration
-from process_ims import get_ims_info 
+from process_czi import get_czi_info, chunk_and_save_czi
+from process_ims import get_ims_info, chunk_and_save_ims
 
 from io_images import get_images_infoframe
 
@@ -20,8 +20,14 @@ extension = '.czi'
 # The root folder where .tiff files will be saved.
 # result_folderpath = 'results'
 # ON WINDOWS
-result_foldername = r"\zmax_projections"
+result_foldername = r"\chunk_images"
 result_folderpath = folderpath + result_foldername
+
+# Size of the chunk in GB
+chunk_size = 10
+
+# Channel you want to segment microglia (usually EGFP or IBA1 or 1).
+channel_name = 'EGFP'
 
 # Get a pd.DataFrame that contains information about the different .czi files in the root folder.
 # Most important is the name and the path of the .czi files.
@@ -36,20 +42,23 @@ else:
     char = "/" 
 
 for i, row in infoframe.iterrows():
-    file_name = row['file_name']
-    save_foldername = file_name[:-len(extension)]
-    save_folderpath = result_folderpath + char + save_foldername
+    ### TO REMOVE
+    if i > 0:
+        file_name = row['file_name']
+        save_foldername = file_name[:-len(extension)]
+        save_folderpath = result_folderpath + char + save_foldername
 
-    file_path = row['file_path']
-    print(f"The file {file_name} is selected for processing")
-    extension = file_name[-len(extension):]
-    if 'czi' in extension:
-        czi_file = get_czi_info(file_path)
-        maxproject_for_registration(czi_file, 
-                                    save_folderpath, 
-                                    channel_name = 'DAPI')
-    elif 'ims' in extension:
-        get_ims_info(file_path)
-        print("No need to zmax project retina this file format.")
-    else:
-        print("No function to process this file format.")
+        file_path = row['file_path']
+        print(f"The file {file_name} is selected for processing")
+        extension = file_name[-len(extension):]
+        if 'czi' in extension:
+            czi_file = get_czi_info(file_path)
+            chunk_and_save_czi(czi_file, 
+                            save_folderpath, 
+                                max_size_chunk_gb = chunk_size, 
+                                channel_name = channel_name)
+        elif 'ims' in extension:
+            get_ims_info(file_path)
+            print("Chunk not yet tested for ims")
+        else:
+            print("No function to process this file format.")
