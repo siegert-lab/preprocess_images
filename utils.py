@@ -1,6 +1,100 @@
+import os
 import math
-import tifffile as tiff
 import plotly.express as px
+import pandas as pd
+
+def add_condition_columns(dataframe, age_values, sex_values, animal_values):
+    '''
+    Add columns 'Age', 'Sex', 'Animal', and 'Idx' to a dataframe. The 'Idx' column
+    will assign a unique index (0 to N) for rows with the same values for Age, Sex, and Animal.
+    Each column is populated based on the given index ranges: [value, start_idx, end_idx].
+
+    Parameters:
+        dataframe (pd.DataFrame): The dataframe you want to modify.
+        age_values (list of tuples): List of triples for the 'Age' column.
+            Each tuple is of the form [value, start_idx, end_idx].
+        sex_values (list of tuples): List of triples for the 'Sex' column.
+            Each tuple is of the form [value, start_idx, end_idx].
+        animal_values (list of tuples): List of triples for the 'Animal' column.
+            Each tuple is of the form [value, start_idx, end_idx].
+
+    Returns:
+        pd.DataFrame: The dataframe with the new 'Age', 'Sex', 'Animal', and 'Idx' columns added.
+    '''
+    
+    # Helper function to fill a column based on value and index ranges
+    def fill_column(column_name, value_ranges):
+        for value, start_idx, end_idx in value_ranges:
+            dataframe.loc[start_idx:end_idx, column_name] = value
+
+    # Initialize the new columns with None or a default value
+    dataframe['Age'] = None
+    dataframe['Sex'] = None
+    dataframe['Animal'] = None
+    
+    # Fill 'Age', 'Sex', and 'Animal' columns using the helper function
+    fill_column('Age', age_values)
+    fill_column('Sex', sex_values)
+    fill_column('Animal', animal_values)
+    
+    # Create the 'Idx' column based on groups of 'Age', 'Sex', 'Animal'
+    dataframe['Idx'] = dataframe.groupby(['Age', 'Sex', 'Animal']).cumcount()
+
+    return dataframe
+
+def update_file_name_and_path(dataframe, project_path=None):
+    '''
+    Rename the file names in the column file_name in the pattern 
+    raw_image_Age_x_Sex_y_Animal_z_idx_i.[ext].
+    And change the file pathes in the column file_path in the pattern 
+    project_path/raw_images/x/y/z/raw_image_Age_x_Sex_y_Animal_z_idx_i.[ext].
+
+    Parameters:
+        dataframe (pd.DataFrame): The dataframe you want to modify.
+        project_path (str): Path to the folder that contains the folder raw_images.
+            If None, the project_path in the column file_path is reused.
+    '''
+
+    for index, row in dataframe.iterrows():
+        # Extract variables from the dataframe row
+        age = row['Age']
+        sex = row['Sex']
+        animal = row['Animal']
+        idx = row['Idx']
+        file_path = row['file_path']
+        
+        # Store the original file path in the new column 'old_file_path'
+        dataframe.at[index, 'old_file_path'] = file_path
+        
+        # Detect the file extension
+        file_extension = os.path.splitext(file_path)[1]  # Get the extension (e.g., '.czi', '.tiff')
+        
+        # Generate the new file name based on the pattern
+        new_file_name = f"raw_image_Age_{age}_Sex_{sex}_Animal_{animal}_idx_{idx}{file_extension}"
+        
+        # Update the 'file_name' column
+        dataframe.at[index, 'file_name'] = new_file_name
+        
+        # Determine the project path (either the one passed in or from the file_path column)
+        if project_path is None:
+            # Extract the current base path (everything up to 'raw_images')
+            base_path = os.path.dirname(file_path)
+        else:
+            base_path = project_path
+        
+        # Normalize the base path (handles OS-specific separator issues)
+        base_path = os.path.normpath(base_path)
+        
+        # Create the new file path based on the pattern
+        new_file_path = os.path.join(base_path, 'raw_images', str(age), str(sex), str(animal), new_file_name)
+        
+        # Normalize the new file path (handles OS-specific separator issues)
+        new_file_path = os.path.normpath(new_file_path)
+        
+        # Update the 'file_path' column
+        dataframe.at[index, 'file_path'] = new_file_path
+
+    return dataframe
 
 def plot_image(image, title='2D Image'):
     # Plot the first slice using Plotly
@@ -8,17 +102,7 @@ def plot_image(image, title='2D Image'):
     fig.update_layout(title=title, coloraxis_showscale=False)
     fig.show()
 
-def load_and_plot_tiff(tiff_file, z=0):
-    # Load the TIFF file
-    array = tiff.imread(tiff_file)
-
-    # Check the shape of the array
-    print(f"Loaded TIFF shape: {array.shape}")
-
-    # Extract the first 2D slice (assuming shape is [Z, Y, X])
-    first_slice = array[z, :, :]
-    plot_image(image=first_slice, title='First 2D Slice from TIFF')
-
+# Utils function to define the chunking bbox
 def get_nb_pix_chunk_l(max_size_chunk, z_len, bytes_per_pix):
     nb_pix_chunk = int(max_size_chunk / bytes_per_pix)
     nb_pix_chunk_xy = int(nb_pix_chunk / z_len)
@@ -44,7 +128,6 @@ def divide_image_into_mesh(width, height, square_size):
 
     return num_squares_x, num_squares_y
 
-
 def generate_mesh_coordinates(num_squares_x, num_squares_y, square_size, x0=0, y0=0):
     # Generate the grid of coordinates
     coordinates = []
@@ -56,7 +139,7 @@ def generate_mesh_coordinates(num_squares_x, num_squares_y, square_size, x0=0, y
     
     return coordinates
 
-
+# For the registration/alignment we reduce the resolution of the z max projection 
 def downsample_by_2(image):
     # Crop the image to make dimensions divisible by 2
     cropped_image = image[:image.shape[0] // 2 * 2, :image.shape[1] // 2 * 2]
