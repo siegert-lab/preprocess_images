@@ -42,23 +42,21 @@ else:
     char = "/" 
 
 for i, row in infoframe.iterrows():
-    ### TO REMOVE
-    if i > 0:
-        file_name = row['file_name']
-        save_foldername = file_name[:-len(extension)]
-        save_folderpath = result_folderpath + char + save_foldername
+    file_name = row['file_name']
+    save_foldername = file_name[:-len(extension)]
+    save_folderpath = result_folderpath + char + save_foldername
 
-        file_path = row['file_path']
-        print(f"The file {file_name} is selected for processing")
-        extension = file_name[-len(extension):]
-        if 'czi' in extension:
-            czi_file = get_czi_info(file_path)
-            chunk_and_save_czi(czi_file, 
-                            save_folderpath, 
-                                max_size_chunk_gb = chunk_size, 
-                                channel_name = channel_name)
-        elif 'ims' in extension:
-            get_ims_info(file_path)
-            print("Chunk not yet tested for ims")
-        else:
-            print("No function to process this file format.")
+    file_path = row['file_path']
+    print(f"The file {file_name} is selected for processing")
+    extension = file_name[-len(extension):]
+    if 'czi' in extension:
+        czi_file = get_czi_info(file_path)
+        chunk_and_save_czi(czi_file, 
+                        save_folderpath, 
+                            max_size_chunk_gb = chunk_size, 
+                            channel_name = channel_name)
+    elif 'ims' in extension:
+        get_ims_info(file_path)
+        print("Chunk not yet tested for ims")
+    else:
+        print("No function to process this file format.")
