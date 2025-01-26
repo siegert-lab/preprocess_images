@@ -41,7 +41,7 @@ def get_images_infoframe(folderpath,
 
     return info_frame
 
-def move_raw_images(dataframe, project_path = None):
+def move_files(dataframe):
     """
     This function saves the files in the dataframe following the file path in the file_path column.
     It ensures the destination directories exist and moves the files to the new locations.
@@ -73,8 +73,7 @@ def move_raw_images(dataframe, project_path = None):
         except Exception as e:
             print(f"Error moving {old_path} to {new_path}: {e}")
 
-def store_raw_images(dataframe, 
-                     folderpath,
+def store_raw_images(folderpath,
                      project_path, 
                      age_values, 
                      sex_values, 
@@ -82,20 +81,27 @@ def store_raw_images(dataframe,
                      extension = ".czi",
                      windows = False
                      ):
-    
+    # Get the original infoframe with the new raw images
     dataframe = get_images_infoframe(folderpath, 
                                         extension =extension, 
                                         conditions = [], 
                                         windows = windows)
     
+    # Set the metadata of the new raw images
     dataframe = add_condition_columns(dataframe, age_values, sex_values, animal_values)
 
+    # Update file name and path depending on the metadata
     if 'old_file_path' not in dataframe.columns:
-        dataframe = update_file_name_and_path(dataframe, 
-                                        project_path)
-        
-    move_raw_images(dataframe, project_path)
+        dataframe = update_file_name_and_path(dataframe,
+                                              project_path,
+                                              folder_name = 'raw_images', 
+                                            )
+    
+    # Save the new raw images in the tree structure following metadata
+    move_files(dataframe)
 
+    # Get the updated infoframe
+    project_path = os.path.join(folderpath, "raw_images")
     dataframe = get_images_infoframe(project_path, 
                                         extension = extension, 
                                         conditions = ['Age', 'Sex', 'Animal'], 

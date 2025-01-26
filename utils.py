@@ -5,7 +5,7 @@ import pandas as pd
 
 def add_condition_columns(dataframe, age_values, sex_values, animal_values):
     '''
-    Add columns 'Age', 'Sex', 'Animal', and 'Idx' to a dataframe. The 'Idx' column
+    Add columns 'Age', 'Sex', 'Animal', and 'Slide' to a dataframe. The 'Slide' column
     will assign a unique index (0 to N) for rows with the same values for Age, Sex, and Animal.
     Each column is populated based on the given index ranges: [value, start_idx, end_idx].
 
@@ -19,7 +19,7 @@ def add_condition_columns(dataframe, age_values, sex_values, animal_values):
             Each tuple is of the form [value, start_idx, end_idx].
 
     Returns:
-        pd.DataFrame: The dataframe with the new 'Age', 'Sex', 'Animal', and 'Idx' columns added.
+        pd.DataFrame: The dataframe with the new 'Age', 'Sex', 'Animal', and 'Slide' columns added.
     '''
     
     # Helper function to fill a column based on value and index ranges
@@ -37,47 +37,58 @@ def add_condition_columns(dataframe, age_values, sex_values, animal_values):
     fill_column('Sex', sex_values)
     fill_column('Animal', animal_values)
     
-    # Create the 'Idx' column based on groups of 'Age', 'Sex', 'Animal'
-    dataframe['Idx'] = dataframe.groupby(['Age', 'Sex', 'Animal']).cumcount()
+    # Create the 'Slide' column based on groups of 'Age', 'Sex', 'Animal'
+    dataframe['Slide'] = dataframe.groupby(['Age', 'Sex', 'Animal']).cumcount()
 
     return dataframe
 
-def update_file_name_and_path(dataframe, project_path=None):
+def update_file_name_and_path(dataframe, folder_name, project_path=None):
     '''
     Rename the file names in the column file_name in the pattern 
-    raw_image_Age_x_Sex_y_Animal_z_idx_i.[ext].
+    folder_name_Age_x_Sex_y_Animal_z_Slide_i.[ext].
     And change the file pathes in the column file_path in the pattern 
-    project_path/raw_images/x/y/z/raw_image_Age_x_Sex_y_Animal_z_idx_i.[ext].
+    project_path/folder_name/x/y/z/folder_name_Age_x_Sex_y_Animal_z_Slide_i.[ext].
+    Or if not raw image 
+    project_path/folder_name/x/y/z/i/folder_name_Age_x_Sex_y_Animal_z_Slide_i.[ext].
+
 
     Parameters:
         dataframe (pd.DataFrame): The dataframe you want to modify.
-        project_path (str): Path to the folder that contains the folder raw_images.
+        project_path (str): Path to the folder that contains the folder folder_name.
             If None, the project_path in the column file_path is reused.
     '''
+    update_path = 'old_file_path' not in dataframe.columns
 
     for index, row in dataframe.iterrows():
         # Extract variables from the dataframe row
         age = row['Age']
         sex = row['Sex']
         animal = row['Animal']
-        idx = row['Idx']
+        slide = row['Slide']
+        file_name = row['file_name']
         file_path = row['file_path']
         
         # Store the original file path in the new column 'old_file_path'
-        dataframe.at[index, 'old_file_path'] = file_path
+        if update_path:
+            dataframe.at[index, 'old_file_path'] = file_path
         
         # Detect the file extension
         file_extension = os.path.splitext(file_path)[1]  # Get the extension (e.g., '.czi', '.tiff')
         
         # Generate the new file name based on the pattern
-        new_file_name = f"raw_image_Age_{age}_Sex_{sex}_Animal_{animal}_idx_{idx}{file_extension}"
-        
+        if folder_name == 'raw_images':
+            new_file_name = f"{folder_name}_Age_{age}_Sex_{sex}_Animal_{animal}_Slide_{slide}{file_extension}"
+        elif folder_name == 'chunk_images':
+            new_file_name = f"microglia_Age_{age}_Sex_{sex}_Animal_{animal}_Slide_{slide}_{file_name[10:]}"
+        elif folder_name == 'zmax_projections':
+            new_file_name = f"zmax_proj_Age_{age}_Sex_{sex}_Animal_{animal}_Slide_{slide}_{file_name}"
+
         # Update the 'file_name' column
         dataframe.at[index, 'file_name'] = new_file_name
         
         # Determine the project path (either the one passed in or from the file_path column)
         if project_path is None:
-            # Extract the current base path (everything up to 'raw_images')
+            # Extract the current base path (everything up to 'folder_name')
             base_path = os.path.dirname(file_path)
         else:
             base_path = project_path
@@ -86,8 +97,11 @@ def update_file_name_and_path(dataframe, project_path=None):
         base_path = os.path.normpath(base_path)
         
         # Create the new file path based on the pattern
-        new_file_path = os.path.join(base_path, 'raw_images', str(age), str(sex), str(animal), new_file_name)
-        
+        if folder_name == 'raw_images':
+            new_file_path = os.path.join(base_path, folder_name, str(age), str(sex), str(animal), new_file_name)
+        else:
+            new_file_path = os.path.join(base_path, folder_name, str(age), str(sex), str(animal), str(slide), new_file_name)
+
         # Normalize the new file path (handles OS-specific separator issues)
         new_file_path = os.path.normpath(new_file_path)
         
