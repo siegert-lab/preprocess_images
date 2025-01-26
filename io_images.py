@@ -118,8 +118,8 @@ def load_and_plot_tiff(tiff_filepath, z=0):
     print(f"Loaded TIFF shape: {array.shape}")
 
     # Extract the first 2D slice (assuming shape is [Z, Y, X])
-    first_slice = array[z, :, :]
-    plot_image(image=first_slice, title='First 2D Slice from TIFF')
+    slice = array[z, :, :]
+    plot_image(image=slice, title= f'The 2D Slice {z} from TIFF')
 
 def save_array(array, folder_path, save_name, extension, grey_scale=np.uint8, windows = False):
     array = array.astype(grey_scale)  # Convert to uint8

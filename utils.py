@@ -1,6 +1,7 @@
 import os
 import math
 import plotly.express as px
+import re
 import pandas as pd
 
 def add_condition_columns(dataframe, age_values, sex_values, animal_values):
@@ -77,7 +78,7 @@ def update_file_name_and_path(dataframe, project_path=None, folder_name = 'raw_i
         
         # Generate the new file name based on the pattern
         if folder_name == 'raw_images':
-            new_file_name = f"{folder_name}_Age_{age}_Sex_{sex}_{animal}_{slide}{file_extension}"
+            new_file_name = f"raw_image_Age_{age}_Sex_{sex}_{animal}_{slide}{file_extension}"
         # TODO
         # elif folder_name == 'chunk_images':
         #     new_file_name = f"microglia_Age_{age}_Sex_{sex}_{animal}_{slide}_{file_name[10:]}"
@@ -111,6 +112,38 @@ def update_file_name_and_path(dataframe, project_path=None, folder_name = 'raw_i
         dataframe.at[index, 'file_path'] = new_file_path
 
     return dataframe
+
+def get_base_filename(file_name):
+    # Use regular expressions to extract the components
+    match = re.match(r"raw_image_Age_(\d+m)_Sex_(\w)_Animal_(\d+)_Slide_(\d+)_", file_name)
+    
+    if match:
+        # Extract values from the match groups
+        age = match.group(1)    # Age, e.g., '18m'
+        sex = match.group(2)    # Sex, e.g., 'F'
+        animal = match.group(3) # Animal, e.g., '1'
+        slide = match.group(4)  # Slide, e.g., '0'
+        
+        # Create the base filename
+        base_filename = f"microglia_Age_{age}_Sex_{sex}_Animal_{animal}_Slide_{slide}_"
+        return base_filename, age, sex, animal, slide
+    else:
+        raise ValueError("Filename does not match expected pattern")
+
+def set_new_filepath(file_path):
+    file_extension = os.path.splitext(file_path)[1]  # Get the extension (e.g., '.czi', '.tiff')
+    file_path_wo = os.path.splitext(file_path)[0]
+    # Modify the file name by appending '_chunked' to the filename
+    modified_file_path = f"{file_path_wo}_chunked{file_extension}"
+    print(f"Modified file path: {modified_file_path}")
+    
+    # Rename the file in the folder
+    if not os.path.exists(modified_file_path):  # Ensure the new file doesn't already exist
+        os.rename(file_path, modified_file_path)  # Rename the file on disk
+        print(f"File renamed to: {modified_file_path}")
+    else:
+        print(f"File already exists: {modified_file_path}, skipping renaming.")
+    return modified_file_path
 
 def plot_image(image, title='2D Image'):
     # Plot the first slice using Plotly

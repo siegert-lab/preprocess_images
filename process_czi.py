@@ -81,7 +81,9 @@ def _get_chunk_bbox(czi_file, max_size_chunk_gb=30):
     for s in range(nb_seq):
         z_len = dims[s]['Z'][1] - dims[s]['Z'][0]  # Depth (Z-axis)
         x_min, y_min, w, h = bbox[s].x, bbox[s].y, bbox[s].w, bbox[s].h  # Bounding box details
+        # The number of pixel on the side of the square
         nb_pix_chunk_l = get_nb_pix_chunk_l(max_size_chunk, z_len, bytes_per_pix)
+        # The number of squares in x and y to divide the image
         nb_chunks_x, nb_chunks_y = divide_image_into_mesh(w, h, square_size=nb_pix_chunk_l)
         chunk_idx = [x_min, nb_chunks_x, y_min, nb_chunks_y, nb_pix_chunk_l, z_len, w, h]
         chunk_idx_list.append(chunk_idx)
@@ -100,6 +102,7 @@ def _get_channel_idx(metadata, channel_name):
 
 def chunk_and_save_czi(czi_file, 
                        save_folderpath, 
+                       base_filename, 
                        max_size_chunk_gb = 30, 
                        channel_name = 'EGFP'):
     # If czi_file is a string it may be the filepath.
@@ -121,7 +124,9 @@ def chunk_and_save_czi(czi_file,
 
     # Iterate through sequences i.e. slices of brain on one slide
     sequences = czi_file.get_dims_shape()
+    # Get the list of the [x_min, nb_chunks_x, y_min, nb_chunks_y, nb_pix_chunk_l, z_len, w, h]
     bbox_list = _get_chunk_bbox(czi_file, max_size_chunk_gb)
+    
     nb_seq = len(sequences)
     print("Start chunking")
     print(f"There are {nb_seq} tissue slices in this file")
@@ -170,7 +175,8 @@ def chunk_and_save_czi(czi_file,
                 chunk_image = np.stack(z_stack_list, axis=0)
                 chunk_image = np.transpose(chunk_image, (0, 2, 1))
                 # Construct the base of the file path first
-                base_filepath = os.path.join(save_folderpath, f"microglia_seq_{s}_chunk_{nn}_over_{nb_chunks-1}_x__{x_min}_{x_max}__y__{y_min}_{y_max}__")
+                file_name = f"{base_filename}_seq_{s}_chunk_{nn}_over_{nb_chunks-1}_x__{x_min}_{x_max}__y__{y_min}_{y_max}__"
+                base_filepath = os.path.join(save_folderpath, file_name)
                 # Add the `none_indices` part only if it has elements
                 if len(none_indices) > 0:
                     save_filepath = f"{base_filepath}z_fails_{none_indices}.tiff"
@@ -186,60 +192,6 @@ def chunk_and_save_czi(czi_file,
             print(seq['S'])
     del czi_file
     print("")
-    return 
-
-
-def maxproject_for_registration_split(czi_file, save_folderpath, channel_name = 'DAPI'):
-    # if isinstance(czi_file, str):
-    #     czi_file = aicspylibczi.CziFile(czi_file)
-    # # Take the correct chanel that contains the nucleus
-    # metadata = czi_file.meta
-    # correct_channel_idx = _get_channel_idx(metadata, channel_name)
-
-    # bbox = czi_file.get_all_scene_bounding_boxes()
-    # sequences = czi_file.get_dims_shape()
-    # nb_seq = len(sequences)
-    # print("Start zmax projections")
-    # print(f"There are {nb_seq} tissue slices in this file")
-
-    # # Create the folder were files are stored if doesn't exist.
-    # os.makedirs(save_folderpath, exist_ok = True)
-    # for s, seq in enumerate(sequences):
-    #     if seq['S'][1]-seq['S'][0] == 1:
-    #         x_min, y_min, w, h = bbox[s].x, bbox[s].y, bbox[s].w, bbox[s].h  # Bounding box details
-    #         z_len = sequences[s]['Z'][1] - sequences[s]['Z'][0]  # Depth (Z-axis)
-            
-    #         sub_h_max = 10000
-    #         nb_subimages = h // sub_h_max
-    #         remainder = h % sub_h_max
-    #         sub_h_list = nb_subimages * [sub_h_max] + [remainder]
-    #         z_image_list = []
-    #         for sub_h in sub_h_list:
-    #             sub_previous_image = np.zeros((w, sub_h))
-    #             sub_previous_image = downsample_by_2(sub_previous_image)
-    #             for z in range(z_len):
-    #                 sub_z_image = czi_file.read_mosaic(region = (x_min, y_min, w, sub_h), 
-    #                                                 scale_factor = 1.0, 
-    #                                                 C = correct_channel_idx, 
-    #                                                 Z = z,
-    #                                                 dtype = np.uint8,
-    #                                                 )[0][0] # The function returns an array (1,1,y,x)
-    #                 sub_z_image = downsample_by_2(sub_z_image)
-    #                 sub_z_image = np.transpose(sub_z_image, (1, 0))
-    #                 sub_previous_image = np.maximum(sub_z_image, sub_previous_image)
-    #             z_image_list.append(sub_previous_image)
-    #             y_min += sub_h
-    #         # IT IS THE WRONG AXIS I THINK
-    #         stacked_z_image = np.concatenate(z_image_list, axis=0)
-    #         save_filepath = os.path.join(save_folderpath, f"zmax_proj_seq_{s}.tiff")
-    #         # Save the chunk as a TIFF file
-    #         tifffile.imsave(save_filepath, stacked_z_image)
-    #         del stacked_z_image
-    #         print(f"zmax projection of sequence {s} is saved in " + save_filepath)
-    #     else:
-    #         print("image is weird")
-    #         print(seq['S'])
-    # del czi_file
     return 
 
 
