@@ -42,7 +42,7 @@ def add_condition_columns(dataframe, age_values, sex_values, animal_values):
 
     return dataframe
 
-def update_file_name_and_path(dataframe, folder_name, project_path=None):
+def update_file_name_and_path(dataframe, project_path=None, folder_name = 'raw_images'):
     '''
     Rename the file names in the column file_name in the pattern 
     folder_name_Age_x_Sex_y_Animal_z_Slide_i.[ext].
@@ -77,11 +77,12 @@ def update_file_name_and_path(dataframe, folder_name, project_path=None):
         
         # Generate the new file name based on the pattern
         if folder_name == 'raw_images':
-            new_file_name = f"{folder_name}_Age_{age}_Sex_{sex}_Animal_{animal}_Slide_{slide}{file_extension}"
-        elif folder_name == 'chunk_images':
-            new_file_name = f"microglia_Age_{age}_Sex_{sex}_Animal_{animal}_Slide_{slide}_{file_name[10:]}"
-        elif folder_name == 'zmax_projections':
-            new_file_name = f"zmax_proj_Age_{age}_Sex_{sex}_Animal_{animal}_Slide_{slide}_{file_name}"
+            new_file_name = f"{folder_name}_Age_{age}_Sex_{sex}_{animal}_{slide}{file_extension}"
+        # TODO
+        # elif folder_name == 'chunk_images':
+        #     new_file_name = f"microglia_Age_{age}_Sex_{sex}_{animal}_{slide}_{file_name[10:]}"
+        # elif folder_name == 'zmax_projections':
+        #     new_file_name = f"zmax_proj_Age_{age}_Sex_{sex}_{animal}_{slide}_{file_name}"
 
         # Update the 'file_name' column
         dataframe.at[index, 'file_name'] = new_file_name
@@ -99,8 +100,9 @@ def update_file_name_and_path(dataframe, folder_name, project_path=None):
         # Create the new file path based on the pattern
         if folder_name == 'raw_images':
             new_file_path = os.path.join(base_path, folder_name, str(age), str(sex), str(animal), new_file_name)
-        else:
-            new_file_path = os.path.join(base_path, folder_name, str(age), str(sex), str(animal), str(slide), new_file_name)
+        # TODO
+        # else:
+        #     new_file_path = os.path.join(base_path, folder_name, str(age), str(sex), str(animal), str(slide), new_file_name)
 
         # Normalize the new file path (handles OS-specific separator issues)
         new_file_path = os.path.normpath(new_file_path)
