@@ -11,6 +11,7 @@ env/
 venv/
 
 # Ignore system files
+.Rhistory
 .DS_Store
 Thumbs.db
 
@@ -28,3 +29,4 @@ Thumbs.db
 
 # Ignore all folders containing "results" in their name
 *results*/
+.Rhistory
