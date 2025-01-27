@@ -61,7 +61,11 @@ def get_czi_info(czi_file):
         print('')
     return czi_file
 
-        
+def get_czi_pixel_size(czi_file):
+    if isinstance(czi_file, str):
+        czi_file = aicspylibczi.CziFile(czi_file)
+    return {'x':0.3249288, 'y':0.3249288, 'z':1.0000}
+
 def _get_chunk_bbox(czi_file, max_size_chunk_gb=30):
     # For each sequence get a vector that contains information for chunking.
     # So it returns a list of vectors.
@@ -113,7 +117,7 @@ def chunk_and_save_czi(czi_file,
     # Take the correct chanel that contains the microglia
     metadata = czi_file.meta
     correct_channel_idx = _get_channel_idx(metadata, channel_name)
-    
+    pixel_size = get_czi_pixel_size(czi_file)
     # Get the number of bytes per pixel depending on the dtype of pixels
     pixel_type = czi_file.pixel_type
     if '16' in pixel_type:
@@ -184,7 +188,7 @@ def chunk_and_save_czi(czi_file,
                     save_filepath = f"{base_filepath}.tiff"
                 # Save the chunk as a TIFF file
                 print('shape: ', chunk_image.shape)
-                tifffile.imsave(save_filepath, chunk_image)
+                tifffile.imsave(save_filepath, chunk_image, metadata=pixel_size)
                 del chunk_image
                 print(f"chunk {nn} of sequence {s} is saved in " + save_filepath)
         else:
@@ -201,6 +205,9 @@ def maxproject_for_registration(czi_file, save_folderpath, channel_name = 'DAPI'
     # Take the correct chanel that contains the nucleus
     metadata = czi_file.meta
     correct_channel_idx = _get_channel_idx(metadata, channel_name)
+    pixel_size = get_czi_pixel_size(czi_file)
+    # Because z max proj is downsample
+    pixel_size = {key: value * 2 for key, value in pixel_size.items()}
 
     bbox = czi_file.get_all_scene_bounding_boxes()
     sequences = czi_file.get_dims_shape()
@@ -252,7 +259,7 @@ def maxproject_for_registration(czi_file, save_folderpath, channel_name = 'DAPI'
                 previous_image = np.maximum(z_image, previous_image)
             save_filepath = os.path.join(save_folderpath, f"zmax_proj_seq_{s}.tiff")
             # Save the chunk as a TIFF file
-            tifffile.imsave(save_filepath, previous_image)
+            tifffile.imsave(save_filepath, previous_image, metadata = pixel_size)
             del previous_image
             print(f"zmax projection of sequence {s} is saved in " + save_filepath)
         else:

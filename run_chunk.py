@@ -64,7 +64,6 @@ for i, row in infoframe.iterrows():
                             channel_name = channel_name)
         # Modify the name of the czi file to label that it was chunked
         modified_file_path = set_new_filepath(file_path)
-        # Optionally, update the dataframe with the new file path
         infoframe.at[i, 'file_path'] = modified_file_path
 
     elif 'ims' in file_extension:
@@ -72,7 +71,6 @@ for i, row in infoframe.iterrows():
         print("Chunk not yet tested for ims")
         # Modify the name of the czi file to label that it was chunked
         modified_file_path = set_new_filepath(file_path)
-        # Optionally, update the dataframe with the new file path
         infoframe.at[i, 'file_path'] = modified_file_path
     else:
         print("No function to process this file format.")
