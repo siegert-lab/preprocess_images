@@ -74,7 +74,7 @@ def update_file_name_and_path(dataframe, project_path=None, folder_name = 'raw_i
             dataframe.at[index, 'old_file_path'] = file_path
         
         # Detect the file extension
-        file_extension = os.path.splitext(file_path)[1]  # Get the extension (e.g., '.czi', '.tiff')
+        file_extension = os.path.splitext(file_path)[1]  # Get the extension (e.g., '.czi', '.tif')
         
         # Generate the new file name based on the pattern
         if folder_name == 'raw_images':
@@ -131,7 +131,7 @@ def get_base_filename(file_name):
         raise ValueError("Filename does not match expected pattern")
 
 def set_new_filepath(file_path):
-    file_extension = os.path.splitext(file_path)[1]  # Get the extension (e.g., '.czi', '.tiff')
+    file_extension = os.path.splitext(file_path)[1]  # Get the extension (e.g., '.czi', '.tif')
     file_path_wo = os.path.splitext(file_path)[0]
     # Modify the file name by appending '_chunked' to the filename
     modified_file_path = f"{file_path_wo}_chunked{file_extension}"

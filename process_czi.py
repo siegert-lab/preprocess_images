@@ -148,7 +148,7 @@ def chunk_and_save_czi(czi_file,
             Y_max = Y_min + y_len
             nb_chunks = len(xy_coordinates)
             print(f"There are {nb_chunks} chunks for seq {s}")
-            print(f"So, there are {nb_chunks} .tiff files to save")
+            print(f"So, there are {nb_chunks} .tif files to save")
             for nn, xy in enumerate(xy_coordinates):
                 x_min = xy[0]
                 x_max = x_min + l
@@ -183,9 +183,9 @@ def chunk_and_save_czi(czi_file,
                 base_filepath = os.path.join(save_folderpath, file_name)
                 # Add the `none_indices` part only if it has elements
                 if len(none_indices) > 0:
-                    save_filepath = f"{base_filepath}z_fails_{none_indices}.tiff"
+                    save_filepath = f"{base_filepath}z_fails_{none_indices}.tif"
                 else:
-                    save_filepath = f"{base_filepath}.tiff"
+                    save_filepath = f"{base_filepath}.tif"
                 # Save the chunk as a TIFF file
                 print('shape: ', chunk_image.shape)
                 tifffile.imsave(save_filepath, chunk_image, metadata=pixel_size)
@@ -215,7 +215,7 @@ def maxproject_for_registration(czi_file, save_folderpath, channel_name = 'DAPI'
     nb_seq = len(sequences)
     print("Start zmax projections")
     print(f"There are {nb_seq} tissue slices in this file")
-    print(f"So, there are {nb_seq} images that will be saved as .tiff files")
+    print(f"So, there are {nb_seq} images that will be saved as .tif files")
 
     # Create the folder were files are stored if doesn't exist.
     os.makedirs(save_folderpath, exist_ok = True)
@@ -258,7 +258,7 @@ def maxproject_for_registration(czi_file, save_folderpath, channel_name = 'DAPI'
                 z_image = downsample_by_2(z_image)
                 z_image = np.transpose(z_image, (1, 0))
                 previous_image = np.maximum(z_image, previous_image)
-            save_filepath = os.path.join(save_folderpath, f"zmax_proj_seq_{s}.tiff")
+            save_filepath = os.path.join(save_folderpath, f"zmax_proj_seq_{s}.tif")
             # Save the chunk as a TIFF file
             tifffile.imsave(save_filepath, previous_image, metadata = pixel_size)
             del previous_image

@@ -14,10 +14,10 @@ folderpath = r"\\fs.ista.ac.at\drives\aventuri\archive\siegegrp\AlVe\MORPHOMICS2
 # The length of the list should be the depth of the tree in the root folder.
 conditions = []
 
-# Format of the files, for now can be .czi or .ims and soon .tiff.
+# Format of the files, for now can be .czi or .ims and soon .tif.
 extension = '.czi'
 
-# The root folder where .tiff files will be saved.
+# The root folder where .tif files will be saved.
 # result_folderpath = 'results'
 # ON WINDOWS
 result_foldername = r"\zmax_projections"

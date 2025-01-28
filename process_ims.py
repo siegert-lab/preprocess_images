@@ -67,6 +67,6 @@ def chunk_and_save_ims(ims_file, save_folderpath, max_size_chunk_gb = 30, channe
         chunk_image = ims_file[0, channel_idx, :, x_min:x_max, y_min:y_max]
     
         print(chunk_image.shape)
-        save_filepath = os.path.join(save_folderpath, f"chunk_{nn}:{nb_chunks}_x:{(x_min, x_max)}_y:{(y_min, y_max)}.tiff")
+        save_filepath = os.path.join(save_folderpath, f"chunk_{nn}:{nb_chunks}_x:{(x_min, x_max)}_y:{(y_min, y_max)}.tif")
         # Save the chunk as a TIFF file
         tifffile.imsave(save_filepath, chunk_image)
