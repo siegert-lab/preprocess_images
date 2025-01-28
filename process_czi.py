@@ -207,7 +207,8 @@ def maxproject_for_registration(czi_file, save_folderpath, channel_name = 'DAPI'
     correct_channel_idx = _get_channel_idx(metadata, channel_name)
     pixel_size = get_czi_pixel_size(czi_file)
     # Because z max proj is downsample
-    pixel_size = {key: value * 2 for key, value in pixel_size.items()}
+    pixel_size['x'] *= 2
+    pixel_size['y'] *= 2
 
     bbox = czi_file.get_all_scene_bounding_boxes()
     sequences = czi_file.get_dims_shape()

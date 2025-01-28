@@ -26,6 +26,7 @@ Thumbs.db
 
 # Ignore all folders containing "data" in their name
 *data*/
+bioimage/
 
 # Ignore all folders containing "results" in their name
 *results*/

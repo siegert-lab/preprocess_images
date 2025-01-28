@@ -18,3 +18,5 @@ infoframe = store_raw_images(folderpath = folderpath,
                             animal_values = animal_values,
                             extension = ".czi",
                             windows = windows)
+
+print(infoframe.to_string())
