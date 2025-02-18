@@ -9,7 +9,7 @@ from process_ims import get_ims_info, chunk_and_save_ims
 # windows = False
 # folderpath = "/run/user/1001/gvfs/smb-share:server=fs.ista.ac.at,share=drives/tnegrell/archive/siegegrp/AlVe/MORPHOMICS2.0_MICROGLIA_BRAIN_ATLAS"
 # ON WINDOWS
-windows = True
+windows = "nt" in os.name
 project_path = r"\\fs.ista.ac.at\drives\aventuri\archive\siegegrp\AlVe\MORPHOMICS2.0_MICROGLIA_BRAIN_ATLAS"
 folder_path = os.path.join(project_path, "raw_images")
 
@@ -34,10 +34,9 @@ channel_name = 'EGFP'
 # Most important is the name and the path of the .czi files.
 infoframe = get_images_infoframe(folderpath = folder_path, 
                                  conditions = conditions, 
-                                 extension = extension, 
-                                 windows = windows)
+                                 extension = extension)
 
-if windows:
+if "nt" in os.name:
     char = "\\"
 else:
     char = "/" 

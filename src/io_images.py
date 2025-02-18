@@ -9,9 +9,8 @@ import shutil
 
 def get_images_infoframe(folderpath, 
                          extension =".czi", 
-                         conditions = [], 
-                         windows = False):
-    if windows:
+                         conditions = []):
+    if "nt" in os.name:
         char0 = "%s%s\\*%s"
         char1 = "\\*"
         char2 = "\\"
@@ -77,14 +76,12 @@ def store_raw_images(folderpath,
                      sex_values, 
                      animal_values,
                      extension = ".czi",
-                     windows = False
                      ):
     
     # Get the original infoframe with the new raw images
     dataframe = get_images_infoframe(folderpath, 
                                     extension = extension, 
-                                    conditions = [], 
-                                    windows = windows)
+                                    conditions = [])
     
     # Set the metadata of the new raw images
     dataframe = add_condition_columns(dataframe, 
@@ -105,9 +102,7 @@ def store_raw_images(folderpath,
     raw_images_path = os.path.join(folderpath, "raw_images")
     dataframe = get_images_infoframe(raw_images_path, 
                                         extension = extension, 
-                                        conditions = ['Age', 'Sex', 'Animal'], 
-                                        windows = windows)
-    
+                                        conditions = ['Age', 'Sex', 'Animal'])    
     return dataframe
 
 def load_and_plot_tiff(tiff_filepath, z=0):
@@ -126,7 +121,7 @@ def save_array(array, folder_path, save_name, extension, grey_scale=np.uint8, wi
 
     # Save as PNG
     image = Image.fromarray(array)
-    if windows:
+    if "nt" in os.name:
         char = "\\"
     else:
         char = "/" 

@@ -1,3 +1,5 @@
+import os
+
 from process_czi import get_czi_info, maxproject_for_registration
 from process_ims import get_ims_info 
 
@@ -7,7 +9,7 @@ from io_images import get_images_infoframe
 # Path to the folder that contains the .czi files.
 # folderpath = "/run/user/1001/gvfs/smb-share:server=fs.ista.ac.at,share=drives/tnegrell/archive/siegegrp/AlVe/MORPHOMICS2.0_MICROGLIA_BRAIN_ATLAS"
 # ON WINDOWS
-windows = True
+windows = "nt" in os.name
 folderpath = r"\\fs.ista.ac.at\drives\aventuri\archive\siegegrp\AlVe\MORPHOMICS2.0_MICROGLIA_BRAIN_ATLAS"
 
 # If there is a tree structure in the folder that contains the .czi files.
@@ -27,10 +29,9 @@ result_folderpath = folderpath + result_foldername
 # Most important is the name and the path of the .czi files.
 infoframe = get_images_infoframe(folderpath, 
                                  conditions=conditions, 
-                                 extension=extension, 
-                                 windows=windows)
+                                 extension=extension)
 
-if windows:
+if "nt" in os.name:
     char = "\\"
 else:
     char = "/" 

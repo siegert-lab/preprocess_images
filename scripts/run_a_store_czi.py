@@ -1,3 +1,4 @@
+import os
 from io_images import store_raw_images
 
 # Parameters
@@ -5,7 +6,7 @@ from io_images import store_raw_images
 # windows = False
 # folderpath = "/run/user/1001/gvfs/smb-share:server=fs.ista.ac.at,share=drives/tnegrell/archive/siegegrp/AlVe/MORPHOMICS2.0_MICROGLIA_BRAIN_ATLAS"
 # ON WINDOWS
-windows = True
+windows = "nt" in os.name
 folderpath = r"\\fs.ista.ac.at\drives\aventuri\archive\siegegrp\AlVe\MORPHOMICS2.0_MICROGLIA_BRAIN_ATLAS"
 
 age_values = [[]] 
@@ -16,7 +17,5 @@ infoframe = store_raw_images(folderpath = folderpath,
                             age_values = age_values,
                             sex_values = sex_values, 
                             animal_values = animal_values,
-                            extension = ".czi",
-                            windows = windows)
-
+                            extension = ".czi")
 print(infoframe.to_string())
