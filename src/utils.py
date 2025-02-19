@@ -1,6 +1,5 @@
 import os
 import math
-import plotly.express as px
 import re
 import pandas as pd
 
@@ -144,12 +143,6 @@ def set_new_filepath(file_path):
     else:
         print(f"File already exists: {modified_file_path}, skipping renaming.")
     return modified_file_path
-
-def plot_image(image, title='2D Image'):
-    # Plot the first slice using Plotly
-    fig = px.imshow(image, color_continuous_scale="gray")
-    fig.update_layout(title=title, coloraxis_showscale=False)
-    fig.show()
 
 # Utils function to define the chunking bbox
 def get_nb_pix_chunk_l(max_size_chunk, z_len, bytes_per_pix):

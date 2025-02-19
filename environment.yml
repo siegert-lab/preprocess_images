@@ -3,6 +3,7 @@ channels:
   - conda-forge
   - defaults
 dependencies:
+  - imaris_ims_file_reader
   - python=3.10
   - numpy=2.2.2
   - packaging=24.2
@@ -17,6 +18,7 @@ dependencies:
   - tzdata
   - ipykernel=6.25.1
   - paramiko=3.2.0
+  - nbformat>=4.2.0
   - pip
   - pip:
       - -e third_party/aicspylibczi

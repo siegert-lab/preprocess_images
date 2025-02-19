@@ -4,7 +4,8 @@ import numpy as np
 import pandas as pd
 import tifffile as tiff
 from PIL import Image
-from utils import plot_image, add_condition_columns, update_file_name_and_path
+from utils import add_condition_columns, update_file_name_and_path
+from plot import plot_image
 import shutil
 
 def get_images_infoframe(folderpath, 
@@ -116,7 +117,7 @@ def load_and_plot_tiff(tiff_filepath, z=0):
     slice = array[z, :, :]
     plot_image(image=slice, title= f'The 2D Slice {z} from TIFF')
 
-def save_array(array, folder_path, save_name, extension, grey_scale=np.uint8, windows = False):
+def save_array(array, folder_path, save_name, extension, grey_scale=np.uint8):
     array = array.astype(grey_scale)  # Convert to uint8
 
     # Save as PNG
