@@ -1,6 +1,7 @@
 Metadata-Version: 2.2
 Name: preprocess_images
 Version: 0.1
+Requires-Dist: imaris_ims_file_reader
 Requires-Dist: numpy==2.2.2
 Requires-Dist: packaging==24.2
 Requires-Dist: pandas==2.2.3
@@ -14,4 +15,5 @@ Requires-Dist: tifffile==2025.1.10
 Requires-Dist: tzdata==2025.1
 Requires-Dist: ipykernel==6.25.1
 Requires-Dist: paramiko==3.2.0
+Requires-Dist: nbformat>=4.2.0
 Dynamic: requires-dist

@@ -1,3 +1,4 @@
+imaris_ims_file_reader
 numpy==2.2.2
 packaging==24.2
 pandas==2.2.3
@@ -11,3 +12,4 @@ tifffile==2025.1.10
 tzdata==2025.1
 ipykernel==6.25.1
 paramiko==3.2.0
+nbformat>=4.2.0
