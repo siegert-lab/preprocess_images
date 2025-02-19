@@ -14,7 +14,7 @@ dependencies:
   - six=1.17.0
   - tenacity=9.0.0
   - tifffile=2025.1.10
-  - tzdata=2025.1
+  - tzdata
   - ipykernel=6.25.1
   - paramiko=3.2.0
   - pip
