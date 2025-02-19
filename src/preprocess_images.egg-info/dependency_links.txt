@@ -1,1 +1,0 @@
-file:///path/to/third_party/aicspylibczi#egg=aicspylibczi
