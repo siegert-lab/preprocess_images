@@ -1,3 +1,4 @@
+# Python 3.10 required
 -e git+ssh://git@github.com/siegert-lab/preprocess_images.git@e0f322e32f8978315eb0a5a3302cdfb4889f6b8f#egg=aicspylibczi&subdirectory=third_party/aicspylibczi
 numpy==2.2.2
 packaging==24.2

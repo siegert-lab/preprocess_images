@@ -1,0 +1,24 @@
+name: preprocess_img
+channels:
+  - defaults
+  - conda-forge  # Conda-forge channel (useful for some packages)
+
+dependencies:
+  - python=3.10  # Set Python version to 3.10
+  - pip
+  - numpy==2.2.2
+  - packaging==24.2
+  - pandas==2.2.3
+  - pillow==11.1.0
+  - plotly==5.24.1
+  - python-dateutil==2.9.0.post0
+  - pytz==2024.2
+  - six==1.17.0
+  - tenacity==9.0.0
+  - tifffile==2025.1.10
+  - tzdata==2025.1
+  - ipykernel==6.25.1
+  - paramiko==3.2.0
+  - pip:
+      - git+ssh://git@github.com/siegert-lab/preprocess_images.git@e0f322e32f8978315eb0a5a3302cdfb4889f6b8f#egg=aicspylibczi&subdirectory=third_party/aicspylibczi
+
