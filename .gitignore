@@ -10,6 +10,9 @@ __pycache__/
 env/
 venv/
 
+# Ignore egg-info directories
+*.egg-info/
+
 # Ignore system files
 .Rhistory
 .DS_Store
