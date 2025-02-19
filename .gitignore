@@ -12,6 +12,7 @@ venv/
 
 # Ignore egg-info directories
 *.egg-info/
+*egg-info
 
 # Ignore system files
 .Rhistory
