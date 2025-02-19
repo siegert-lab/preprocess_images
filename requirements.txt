@@ -1,17 +1,17 @@
 # Python 3.10 required
 # -e third_party/aicspylibczi
 imaris_ims_file_reader
-numpy==2.2.2
-packaging==24.2
-pandas==2.2.3
-pillow==11.1.0
-plotly==5.24.1
-python-dateutil==2.9.0.post0
-pytz==2024.2
-six==1.17.0
-tenacity==9.0.0
-tifffile==2025.1.10
-tzdata==2025.1
-ipykernel==6.25.1
-paramiko==3.2.0
+numpy>=1.21.6
+packaging>=23.1
+pandas>=1.5.3
+pillow>=9.4.0
+plotly>=5.10.0
+python-dateutil>=2.8.2
+pytz>=2023.3
+six>=1.16.0
+tenacity>=8.2.2
+tifffile>=2022.10.10
+tzdata>=2022.7
+ipykernel>=6.16.2
+paramiko>=2.11.0
 nbformat>=4.2.0

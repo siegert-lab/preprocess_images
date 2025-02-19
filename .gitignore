@@ -34,3 +34,5 @@ bioimage/
 # Ignore all folders containing "results" in their name
 *results*/
 .Rhistory
+
+*trial_chunk*/
