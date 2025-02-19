@@ -1,5 +1,0 @@
-setup.py
-aicspylibczi.egg-info/PKG-INFO
-aicspylibczi.egg-info/SOURCES.txt
-aicspylibczi.egg-info/dependency_links.txt
-aicspylibczi.egg-info/top_level.txt
