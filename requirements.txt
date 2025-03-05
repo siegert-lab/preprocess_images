@@ -15,3 +15,4 @@ tzdata>=2022.7
 ipykernel>=6.16.2
 paramiko>=2.11.0
 nbformat>=4.2.0
+openpyxl

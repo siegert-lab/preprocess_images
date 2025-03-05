@@ -41,7 +41,7 @@ def get_images_infoframe(folderpath,
 
     return info_frame
 
-def move_files(dataframe):
+def move_files(dataframe, register_path):
     """
     This function saves the files in the dataframe following the file path in the file_path column.
     It ensures the destination directories exist and moves the files to the new locations.
@@ -49,6 +49,7 @@ def move_files(dataframe):
     Parameters:
         dataframe (pd.DataFrame): The dataframe containing the file paths (file_path column).
     """
+    register_frame = pd.read_excel(register_path)
 
     for _, row in dataframe.iterrows():
         # Get the old and new file paths
@@ -67,40 +68,54 @@ def move_files(dataframe):
         
         try:
             # Move the file from old path to new path
-            shutil.move(old_path, new_path)
+            shutil.copy2(old_path, new_path)
             print(f"Moved {old_path} to {new_path}")
+            slide_no = int(row['file_number'] )
+            index = dataframe[dataframe['old_file_path'].str.contains(str(slide_no))].index
+            register_frame.loc[index, 'renamed/stored'] = 'X'
+            register_frame.to_excel(register_path, index=False)
+
         except Exception as e:
             print(f"Error moving {old_path} to {new_path}: {e}")
 
-def store_raw_images(folderpath,
-                     age_values, 
-                     sex_values, 
-                     animal_values,
+def store_raw_images(input_folderpath,
+                     output_folderpath, 
+                     register_path = None,
+                     age_values = None, 
+                     sex_values = None, 
+                     animal_values = None,
                      extension = ".czi",
                      ):
     
     # Get the original infoframe with the new raw images
-    dataframe = get_images_infoframe(folderpath, 
+    dataframe = get_images_infoframe(input_folderpath, 
                                     extension = extension, 
                                     conditions = [])
-    
+    print('Original df')
+    print(dataframe)
+
     # Set the metadata of the new raw images
     dataframe = add_condition_columns(dataframe, 
+                                      register_path,
                                       age_values, 
                                       sex_values, 
                                       animal_values)
+    print('New names')
+    print(dataframe)
 
     # Update file name and path depending on the metadata
     if 'old_file_path' not in dataframe.columns:
         dataframe = update_file_name_and_path(dataframe,
-                                              project_path = folderpath,
+                                              project_path = output_folderpath,
                                               folder_name = 'raw_images')
-    
+    print('Ready to move')
+    print(dataframe)
+
     # Save the new raw images in the tree structure following metadata
-    move_files(dataframe)
+    move_files(dataframe, register_path=register_path)
 
     # Get the updated infoframe
-    raw_images_path = os.path.join(folderpath, "raw_images")
+    raw_images_path = os.path.join(output_folderpath, "raw_images")
     dataframe = get_images_infoframe(raw_images_path, 
                                         extension = extension, 
                                         conditions = ['Age', 'Sex', 'Animal'])    

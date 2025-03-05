@@ -3,7 +3,7 @@ import math
 import re
 import pandas as pd
 
-def add_condition_columns(dataframe, age_values, sex_values, animal_values):
+def add_condition_columns(dataframe, register_path, age_values, sex_values, animal_values):
     '''
     Add columns 'Age', 'Sex', 'Animal', and 'Slide' to a dataframe. The 'Slide' column
     will assign a unique index (0 to N) for rows with the same values for Age, Sex, and Animal.
@@ -23,22 +23,48 @@ def add_condition_columns(dataframe, age_values, sex_values, animal_values):
     '''
     
     # Helper function to fill a column based on value and index ranges
-    def fill_column(column_name, value_ranges):
-        for value, start_idx, end_idx in value_ranges:
-            dataframe.loc[start_idx:end_idx, column_name] = value
 
+    # Extract numeric part of the file_name to sort by
+    dataframe['file_number'] = dataframe['file_name'].str.extract('(\d+)', expand=False).astype(int)
+
+    # Sort the dataframe by the extracted file number
+    dataframe = dataframe.sort_values('file_number').drop(columns='file_number')
     # Initialize the new columns with None or a default value
     dataframe['Age'] = None
     dataframe['Sex'] = None
     dataframe['Animal'] = None
     
-    # Fill 'Age', 'Sex', and 'Animal' columns using the helper function
-    fill_column('Age', age_values)
-    fill_column('Sex', sex_values)
-    fill_column('Animal', animal_values)
+    if register_path is not None:
+        # Read the Excel file into a DataFrame
+        register_frame = pd.read_excel(register_path)
+        new_slides_frame = register_frame[register_frame['renamed/stored'].isna()].copy()
+        # Now you can safely modify the 'Slide_no' column in the sub DataFrame
+        new_slides_frame['Slide_no'] = new_slides_frame['Slide_no'].astype(int)
+        # Loop through each row in new_slides_frame
+        for _, row in new_slides_frame.iterrows():
+            slide_no = row['Slide_no']  # Get Slide_no from the current row
+            # Find the matching file_name in dataframe that contains the Slide_no as a substring
+            match_row = dataframe[dataframe['file_name'].str.contains(str(slide_no))]
+            if not match_row.empty:  # If a match is found
+                # Use .loc to update the correct row in the original dataframe
+                dataframe.loc[match_row.index, 'Age'] = str(row['Age (mo)']) + 'm'
+                dataframe.loc[match_row.index, 'Sex'] = row['Sex']
+                dataframe.loc[match_row.index, 'Animal'] = 'Animal_' + str(row['Animal_replicate'])
+        #         register_frame.loc[index, 'renamed/stored'] = 'X'
+        # register_frame.to_excel(register_path, index=False)
+
+    else:
+        def fill_column(column_name, value_ranges):
+            for value, start_idx, end_idx in value_ranges:
+                dataframe.loc[start_idx:end_idx, column_name] = value
+        # Fill 'Age', 'Sex', and 'Animal' columns using the helper function
+        fill_column('Age', age_values)
+        fill_column('Sex', sex_values)
+        fill_column('Animal', animal_values)
     
+    dataframe = dataframe.dropna()
     # Create the 'Slide' column based on groups of 'Age', 'Sex', 'Animal'
-    dataframe['Slide'] = dataframe.groupby(['Age', 'Sex', 'Animal']).cumcount()
+    dataframe['Slide'] = dataframe.groupby(['Age', 'Sex', 'Animal']).cumcount().astype(int).apply(lambda x: f"Slide_{x}")
 
     return dataframe
 
@@ -50,7 +76,6 @@ def update_file_name_and_path(dataframe, project_path=None, folder_name = 'raw_i
     project_path/folder_name/x/y/z/folder_name_Age_x_Sex_y_Animal_z_Slide_i.[ext].
     Or if not raw image 
     project_path/folder_name/x/y/z/i/folder_name_Age_x_Sex_y_Animal_z_Slide_i.[ext].
-
 
     Parameters:
         dataframe (pd.DataFrame): The dataframe you want to modify.
