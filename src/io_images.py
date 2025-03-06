@@ -68,11 +68,16 @@ def move_files(dataframe, register_path):
         
         try:
             # Move the file from old path to new path
+            slide_no = int(row['file_number'] )
+            register_frame['diff'] = register_frame['Slide_no'].apply(
+                lambda x: np.nan if pd.isna(x) else np.abs(int(x) - int(slide_no))
+            )
+            print(f"Moving {old_path} to {new_path}")
+            # Drop the rows where 'diff' is NaN (this excludes the rows where 'Slide_no' was NaN)
+            closest_index = register_frame['diff'].idxmin()
             shutil.copy2(old_path, new_path)
             print(f"Moved {old_path} to {new_path}")
-            slide_no = int(row['file_number'] )
-            index = dataframe[dataframe['old_file_path'].str.contains(str(slide_no))].index
-            register_frame.loc[index, 'renamed/stored'] = 'X'
+            register_frame.loc[closest_index, 'renamed/stored'] = 'X'
             register_frame.to_excel(register_path, index=False)
 
         except Exception as e:
