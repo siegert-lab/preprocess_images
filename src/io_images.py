@@ -78,6 +78,7 @@ def move_files(dataframe, register_path):
             shutil.copy2(old_path, new_path)
             print(f"Moved {old_path} to {new_path}")
             register_frame.loc[closest_index, 'renamed/stored'] = 'X'
+            register_frame = register_frame.drop('diff', axis=1)
             register_frame.to_excel(register_path, index=False)
 
         except Exception as e:

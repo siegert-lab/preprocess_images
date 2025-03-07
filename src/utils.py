@@ -1,4 +1,5 @@
 import os
+import numpy as np
 import math
 import re
 import pandas as pd
@@ -39,18 +40,21 @@ def add_condition_columns(dataframe, register_path, age_values, sex_values, anim
         register_frame = pd.read_excel(register_path)
         new_slides_frame = register_frame[register_frame['renamed/stored'].isna()].copy()
         new_slides_frame_defined = new_slides_frame[new_slides_frame['Slide_no'].notna()].copy()
-        # Now you can safely modify the 'Slide_no' column in the sub DataFrame
         new_slides_frame_defined['Slide_no'] = new_slides_frame_defined['Slide_no'].astype(int)
         # Loop through each row in new_slides_frame
         for _, row in new_slides_frame_defined.iterrows():
             slide_no = row['Slide_no']  # Get Slide_no from the current row
             # Find the matching file_name in dataframe that contains the Slide_no as a substring
-            match_row = dataframe[dataframe['file_name'].str.contains(str(slide_no))]
-            if not match_row.empty:  # If a match is found
+            dataframe['diff'] = dataframe['file_name'].apply(
+                lambda x: np.nan if pd.isna(x) else np.abs(int(re.search(r'\d+', x).group()) - int(slide_no))
+            )
+            closest_index = register_frame['diff'].idxmin()
+            if not row.empty:
                 # Use .loc to update the correct row in the original dataframe
-                dataframe.loc[match_row.index, 'Age'] = str(int(row['Age (mo)'])) + 'm'
-                dataframe.loc[match_row.index, 'Sex'] = row['Sex']
-                dataframe.loc[match_row.index, 'Animal'] = 'Animal_' + str(int(row['Animal_replicate']))
+                dataframe.loc[closest_index, 'Age'] = str(int(row['Age (mo)'])) + 'm'
+                dataframe.loc[closest_index, 'Sex'] = row['Sex']
+                dataframe.loc[closest_index, 'Animal'] = 'Animal_' + str(int(row['Animal_replicate']))
+            dataframe = dataframe.drop('diff', axis=1)
 
     else:
         def fill_column(column_name, value_ranges):
