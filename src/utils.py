@@ -38,10 +38,12 @@ def add_condition_columns(dataframe, register_path, age_values, sex_values, anim
     if register_path is not None:
         # Read the Excel file into a DataFrame
         register_frame = pd.read_excel(register_path)
+        # Ignore the files that were already renamed and store
         new_slides_frame = register_frame[register_frame['renamed/stored'].isna()].copy()
+        # Ignore the rows in the excel file that are not labeled with the number of the glass slide
         new_slides_frame_defined = new_slides_frame[new_slides_frame['Slide_no'].notna()].copy()
         new_slides_frame_defined['Slide_no'] = new_slides_frame_defined['Slide_no'].astype(int)
-        # Loop through each row in new_slides_frame
+        # Loop through each row of interest in the excel file 
         for _, row in new_slides_frame_defined.iterrows():
             slide_no = row['Slide_no']  # Get Slide_no from the current row
             # Find the matching file_name in dataframe that contains the Slide_no as a substring
