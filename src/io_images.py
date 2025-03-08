@@ -37,7 +37,7 @@ def get_images_infoframe(folderpath,
     
     # print a sample of file names
     nb_files = len(filepaths)
-    print(f"There are {nb_files} files in folder_location")
+    print(f"There are {nb_files} files in folder_location {folderpath}")
 
     return info_frame
 
