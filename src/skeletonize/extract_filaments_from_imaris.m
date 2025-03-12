@@ -71,7 +71,10 @@ function [] = extract_filaments_from_imaris(ims_file, output_folder)
             % neuroland_conerter_exe = fullfile(filepath, 'NLMorphologyConverter.exe');
             neuroland_args = ['"', out_swc_fn, '" --export "', out_swc_fn(1:end-4), '_nl_corrected.swc"', ' swc'];
             % neuroland_command = [neuroland_conerter_exe, ' ', neuroland_args];
-            neuroland_command = ['NLMorphologyConverter', ' ', neuroland_args];
+            nlm_path = fullfile(fileparts(mfilename('fullpath')), 'NLMorphologyConverter.exe');
+            neuroland_command = ['"' nlm_path '" ' neuroland_args];
+
+            %neuroland_command = ['NLMorphologyConverter', ' ', neuroland_args];
             disp(['  ...convert filament id ', num2str(fidx), ' with neuroland']);
             ec = system(neuroland_command);
             if ec > 0

@@ -3,13 +3,13 @@
 %output_folder_path = varargin{2};
 
 addpath('../src/skeletonize/ImarisReader-master/');
-addpath('../src/skeletonize');
+addpath('../src/skeletonize/');
 
 % For archive trial
 % fkbp5ko 
 %input_folder_path = '\\fs.ista.ac.at\group\siegegrp\AlVe\_Bioimaging\Alessandro\Anesthetics (female)\BRAIN\KXA\FKBP5\FKBP5KO';
 % fkbp5ko per layer
-%input_folder_path = '\\fs.ista.ac.at\group\siegegrp\AlVe\_Bioimaging\Alessandro\Anesthetics (female)\BRAIN\KXA\FKBP5\FKBP5KO';
+input_folder_path = '\\fs.ista.ac.at\group\siegegrp\AlVe\_Bioimaging\Alessandro\Anesthetics (female)\BRAIN\KXA\FKBP5\FKBP5KO\ALL CORTICAL LAYERS';
 
 %FOLDER = '\\fs.ista.ac.at\drives\aventuri\group\siegegrp\AlVe\_Bioimaging\Alessandro\Anesthetics (female)\BRAIN\KXA\FKBP5\FKBP5KO\ALL CORTICAL LAYERS\';
 output_folder_path = '\\fs.ista.ac.at\group\siegegrp\AlVe\_Bioimaging\Alessandro\Anesthetics (female)\BRAIN\KXA\FKBP5\FKBP5KO\SWC';
@@ -41,8 +41,16 @@ for i=1:length(ims_files)
    
 end
 
-fid = fopen('failed_conversions.txt','wt');
+% Define the path for the failed conversions log file
+failed_log_path = fullfile(output_folder_path, 'failed_conversions.txt');
+
+% Open the file in write mode
+fid = fopen(failed_log_path, 'wt');
+
+% Write the failed file names to the log file
 for ii = 1:length(did_not_pass)
-    fprintf(fid,'%s\n',did_not_pass{ii});
+    fprintf(fid, '%s\n', did_not_pass{ii});
 end
+
+% Close the file
 fclose(fid);
