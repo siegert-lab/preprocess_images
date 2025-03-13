@@ -14,6 +14,7 @@ function [] = extract_filaments_from_imaris(ims_file, output_folder)
     
     % Read the Imaris file
     ir = ImarisReader(ims_file);
+    disp(ir)
     NF = length(ir.Filaments);
     fprintf('There are %d filaments\n', NF);
     
@@ -22,6 +23,7 @@ function [] = extract_filaments_from_imaris(ims_file, output_folder)
         fr = ir.Filaments(i);
         fr_name_ = regexprep(fr.Name,'[^a-zA-Z0-9]','');
         fprintf('Extracting Filament %03d/%03d "%s" into folder "%s"\n', i, NF, fr_name_, out_folder);
+        disp(fr)
         
         if debug
             cmap = rand(fr.NumberOfFilaments + 1, 3);

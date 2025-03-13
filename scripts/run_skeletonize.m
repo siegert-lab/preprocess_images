@@ -8,19 +8,18 @@ addpath('../src/skeletonize/');
 % For archive trial
 % fkbp5ko 
 % female
-%input_folder_path = '\\fs.ista.ac.at\group\siegegrp\AlVe\_Bioimaging\Alessandro\Anesthetics (female)\BRAIN\KXA\FKBP5\FKBP5KO';
+input_folder_path = '\\fs.ista.ac.at\group\siegegrp\AlVe\_Bioimaging\Alessandro\Anesthetics (female)\BRAIN\KXA\FKBP5\FKBP5KO';
 % per layer female
 %input_folder_path = '\\fs.ista.ac.at\group\siegegrp\AlVe\_Bioimaging\Alessandro\Anesthetics (female)\BRAIN\KXA\FKBP5\FKBP5KO\ALL CORTICAL LAYERS';
 
-%output_folder_path = '\\fs.ista.ac.at\group\siegegrp\AlVe\_Bioimaging\Alessandro\Anesthetics (female)\BRAIN\KXA\FKBP5\FKBP5KO\SWC';
+output_folder_path = '\\fs.ista.ac.at\group\siegegrp\AlVe\_Bioimaging\Alessandro\Anesthetics (female)\BRAIN\KXA\FKBP5\FKBP5KO\SWC';
 
 % male
-input_folder_path = '\\fs.ista.ac.at\drives\aventuri\group\siegegrp\AlVe\_Bioimaging\Alessandro\Anesthetics (male)\BRAIN\KXA\FKBP5\FKBP5KO';
+%input_folder_path = '\\fs.ista.ac.at\drives\aventuri\group\siegegrp\AlVe\_Bioimaging\Alessandro\Anesthetics (male)\BRAIN\KXA\FKBP5\FKBP5KO';
 %per layer male
 %input_folder_path = '\\fs.ista.ac.at\group\siegegrp\AlVe\_Bioimaging\Alessandro\Anesthetics (male)\BRAIN\KXA\FKBP5\FKBP5KO\ALL CORTICAL LAYERS';
 
-output_folder_path = '\\fs.ista.ac.at\group\siegegrp\AlVe\_Bioimaging\Alessandro\Anesthetics (male)\BRAIN\KXA\FKBP5\FKBP5KO\SWC';
-
+%output_folder_path = '\\fs.ista.ac.at\group\siegegrp\AlVe\_Bioimaging\Alessandro\Anesthetics (male)\BRAIN\KXA\FKBP5\FKBP5KO\SWC';
 % List all files in the folder (including subfolders)
 folder_contents = dir(input_folder_path);
 

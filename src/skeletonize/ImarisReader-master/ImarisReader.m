@@ -83,7 +83,6 @@ classdef ImarisReader < matlab.mixin.SetGet & dynamicprops
                     'H5_ITER_INC', ...
                     c - 1, ...
                     'H5P_DEFAULT');
-                
                 % Get the HDF5 name.
                 hdf5Name = H5L.get_name_by_idx(obj.FID, '/Scene/Content', ...
                     'H5_INDEX_NAME', ...
@@ -148,8 +147,9 @@ classdef ImarisReader < matlab.mixin.SetGet & dynamicprops
                             obj.Spots(end + 1) = cSpots;
                         
                         end % if
-                        
+                    %{
                     case 'Surfaces'
+                        
                         % Read the Surfaces group.
                         cSurfaces = SurfacesReader(cGID);
                         
@@ -161,12 +161,11 @@ classdef ImarisReader < matlab.mixin.SetGet & dynamicprops
                         
                         if isempty(obj.Surfaces)
                             obj.Surfaces = cSurfaces;
-                            
-                        else
-                            obj.Surfaces(end + 1) = cSurfaces;
-                        
                         end % if
-                        
+                        else
+                        %}
+
+                                            
                 end % switch strIdentifier
             end % for n
         end % ImarisReader 
