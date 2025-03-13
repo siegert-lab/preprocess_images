@@ -54,28 +54,6 @@ classdef ImarisReader < matlab.mixin.SetGet & dynamicprops
                 'H5F_ACC_RDONLY', ...
                 'H5P_DEFAULT');
 
-            % Open the /Scene8/Content group
-            scene8GID = H5G.open(obj.FID, '/Scene8/Content');
-            nSubGroups = H5G.get_num_objs(scene8GID);
-
-            for i = 0:nSubGroups-1
-                subGroupName = H5L.get_name_by_idx(scene8GID, '.', 'H5_INDEX_NAME', 'H5_ITER_INC', i, 'H5P_DEFAULT');
-                subGroupID = H5O.open(scene8GID, subGroupName, 'H5P_DEFAULT');
-
-                try
-                    aID = H5A.open(subGroupID, 'CreationParameters');
-                    cp = transpose(H5A.read(aID));
-                    H5A.close(aID);
-                    fprintf('Group %s: CreationParameters starts with: %s\n', ...
-                        subGroupName, cp(1:min(end,100)));
-                catch
-                    fprintf('Group %s does not have a CreationParameters attribute.\n', subGroupName);
-                end
-                H5G.close(subGroupID);
-            end
-            H5G.close(scene8GID);
-
-
             %% Get the groups in the file.
             nGroups = H5G.get_num_objs(obj.FID);
             groupNames = cell(nGroups, 1);
