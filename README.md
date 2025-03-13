@@ -1,3 +1,28 @@
+# Generate SWC from Filaments in IMS files  
+
+## Overview
+
+When you have created filaments in an IMS file, you can convert these filaments into SWC file where each microglia skeleton is stored in a SWC file.
+
+# How to Generate SWC from Filaments in IMS files Using the Windows Computer of the Lab
+
+1) Open a terminal.
+
+2) Go to the directory containing the code of interest. To do so, write in the terminal:  
+   `cd C:\Users\siege\Desktop\preprocess_images\scripts`
+
+3) Now you have to check 2 parameters:  
+   - The first parameter is the path to the folder containing the new IMS files.  
+   - The second parameter is the path to the folder to store the new SWC files.  
+
+4) you can run the code with your parameters. To do so, write in the terminal:  
+  `.\run_skeletonize.bat "input_folder_path" "output_folder_path"`
+   - `input_folder_path` is a path like `\\fs.ista.ac.at\group\siegegrp\AlVe\_Bioimaging\Alessandro\Anesthetics (female)\BRAIN\KXA\FKBP5\FKBP5KO`
+   - `output_folder_path` is a path like `\\fs.ista.ac.at\group\siegegrp\AlVe\_Bioimaging\Alessandro\Anesthetics (female)\BRAIN\KXA\FKBP5\FKBP5KO\SWC`
+  
+  a. Make sure to add "" around the paths.
+  b. you can use ctrl c and ctrl v on terminal to copy and paste the paths.
+
 # Rename and Store CZI Files
 
 ## Overview
