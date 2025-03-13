@@ -22,91 +22,93 @@ classdef (Abstract) SurpassObjectReader < matlab.mixin.SetGet & dynamicprops
     methods
         
         function obj = SurpassObjectReader(GID, surpasstype)
-            % SurpassObjectReader Constructor for .ims object reader
-            % superclass
-            %
-            %   SurpassObjectReader is abstract. Instances cannot be
-            %   created.
-            
-            %% Record the Group ID.
-            obj.GID = GID;
-            
-            %% Get the name of the object.
-            switch surpasstype
-
-                case 'Cells'
-                    % Open the Cells subgroup.
-                    cellsGID = H5O.open(GID, 'Cells', 'H5P_DEFAULT');
-
-                    % Record the Name.
-                    aID = H5A.open(cellsGID, 'Name');
-                    aName = transpose(H5A.read(aID));
-                    gLabelIdx = regexp(aName, ' Cell Body$', 'Start', 'Once');
-                    obj.Name = aName(1:gLabelIdx);
-                    H5A.close(aID)
-                    H5G.close(cellsGID)
-                    
-                case 'Filaments'
-                    % Open the GraphTracks subgroup.
-                    graphtracksGID = H5O.open(GID, 'GraphTracks', 'H5P_DEFAULT');
-
-                    % Record the Name.
-                    aID = H5A.open(graphtracksGID, 'Name');
-                    obj.Name = transpose(H5A.read(aID));
-                    H5A.close(aID)
-                    H5G.close(graphtracksGID)
-
-                case {'Spots', 'Surfaces'}
-                    % Record the Name.
-                    aID = H5A.open(GID, 'Name');
-                    obj.Name = transpose(H5A.read(aID));
-                    H5A.close(aID)
-                    
-            end % switch
-            
-            %% Get the Imaris identifier for the group in /Scene. 
-            aID = H5A.open(GID, 'Id');
-            valueId = H5A.read(aID);
+    %% Record the Group ID.
+    obj.GID = GID;
+    
+    %% Get the name of the object.
+    switch surpasstype
+        case 'Cells'
+            cellsGID = H5O.open(GID, 'Cells', 'H5P_DEFAULT');
+            aID = H5A.open(cellsGID, 'Name');
+            aName = transpose(H5A.read(aID));
+            gLabelIdx = regexp(aName, ' Cell Body$', 'Start', 'Once');
+            obj.Name = aName(1:gLabelIdx);
             H5A.close(aID)
-            
-            %% Find the group with the matching identifier in the /Scene8 group.
-            % Stats and annotations for each groups are stored in the
-            % /Scene8 HDF5 group. Sometimes this group does not exist. If
-            % the file doesn't have the group, return.
-            if H5L.exists(GID, '/Scene8/Content', 'H5P_DEFAULT')
-                scene8GID = H5G.open(GID, '/Scene8/Content');
-                
-                % Assume that the object's index in /Scene might not match
-                % the object's index in /Scene8, and that the scene names
-                % are not necessarily unique. Therefore, match the groups
-                % using the Imaris Identifier.
-                [isMatch, idxMatch, ~] = H5L.iterate(scene8GID, ...
+            H5G.close(cellsGID)
+        case 'Filaments'
+            graphtracksGID = H5O.open(GID, 'GraphTracks', 'H5P_DEFAULT');
+            aID = H5A.open(graphtracksGID, 'Name');
+            obj.Name = transpose(H5A.read(aID));
+            H5A.close(aID)
+            H5G.close(graphtracksGID)
+        case {'Spots', 'Surfaces'}
+            aID = H5A.open(GID, 'Name');
+            obj.Name = transpose(H5A.read(aID));
+            H5A.close(aID)
+    end
+    
+    %% Get the Imaris identifier for the group in /Scene.
+    aID = H5A.open(GID, 'Id');
+    valueId = H5A.read(aID);
+    H5A.close(aID);
+    
+    %% Find the group with the matching identifier in the /Scene8 group.
+    if H5L.exists(GID, '/Scene8/Content', 'H5P_DEFAULT')
+        scene8GID = H5G.open(GID, '/Scene8/Content');
+        
+        if strcmp(surpasstype, 'Filaments')
+            % For Filaments, iterate through subgroups to find the correct one.
+            nSubGroups = H5G.get_num_objs(scene8GID);
+            found = false;
+            for i = 0:nSubGroups-1
+                candidateName = H5L.get_name_by_idx(scene8GID, '.', 'H5_INDEX_NAME', 'H5_ITER_INC', i, 'H5P_DEFAULT');
+                candidateGID = H5O.open(scene8GID, candidateName, 'H5P_DEFAULT');
+                try
+                    aID = H5A.open(candidateGID, 'CreationParameters');
+                    candidateCP = transpose(H5A.read(aID));
+                    H5A.close(aID);
+                    if contains(candidateCP, '<bpFilamentCreateParameters')
+                        obj.GIDS8 = candidateGID;
+                        obj.CreationParameters = candidateCP;
+                        found = true;
+                        break;
+                    end
+                catch
+                    % Attribute not found for this candidate.
+                end
+                H5G.close(candidateGID);
+            end
+            if ~found
+                warning('No matching Filaments group found in /Scene8/Content.');
+                obj.CreationParameters = '';
+            end
+        else
+            % For other surpasstypes, use matching by Id.
+            [isMatch, idxMatch, ~] = H5L.iterate(scene8GID, ...
+                'H5_INDEX_NAME', ...
+                'H5_ITER_NATIVE', ...
+                0, ...
+                @matchimarisids, ...
+                valueId);
+            if isMatch
+                obj.GIDS8 = H5O.open_by_idx(scene8GID, '/Scene8/Content', ...
                     'H5_INDEX_NAME', ...
-                    'H5_ITER_NATIVE', ...
-                    0, ...
-                    @matchimarisids, ...
-                    valueId);
-                
-                % If found, open the matching group in /Scene8.
-                if isMatch
-                    obj.GIDS8 = H5O.open_by_idx(scene8GID, '/Scene8/Content', ...
-                        'H5_INDEX_NAME', ...
-                        'H5_ITER_INC', ...
-                        idxMatch - 1, ...
-                        'H5P_DEFAULT');
-
-                    % If present, record the CreationParameters attribute.
-                    try
-                        aID = H5A.open(obj.GIDS8, 'CreationParameters');
-                        obj.CreationParameters = transpose(H5A.read(aID));
-                        H5A.close(aID)
-                        
-                    catch
-                        
-                    end % try
-                end % if
-            end % if
-        end % SurpassObjectReader
+                    'H5_ITER_INC', ...
+                    idxMatch - 1, ...
+                    'H5P_DEFAULT');
+                try
+                    aID = H5A.open(obj.GIDS8, 'CreationParameters');
+                    obj.CreationParameters = transpose(H5A.read(aID));
+                    H5A.close(aID)
+                catch
+                    obj.CreationParameters = '';
+                end
+            end
+        end
+        
+        H5G.close(scene8GID);
+    end
+end
 
         function delete(obj)
             % Delete Destructor function for SurpassObjectReader class
