@@ -8,10 +8,11 @@ def add_condition_columns(dataframe, register_path, age_values, sex_values, anim
     '''
     Add columns 'Age', 'Sex', 'Animal', and 'Slide' to a dataframe. The 'Slide' column
     will assign a unique index (0 to N) for rows with the same values for Age, Sex, and Animal.
-    Each column is populated based on the given index ranges: [value, start_idx, end_idx].
+    Each column is populated based on a register(excel file) or the given index ranges: [value, start_idx, end_idx].
 
     Parameters:
         dataframe (pd.DataFrame): The dataframe you want to modify.
+        register_path (str): The path to the register (Excel file) that contains metadata.
         age_values (list of tuples): List of triples for the 'Age' column.
             Each tuple is of the form [value, start_idx, end_idx].
         sex_values (list of tuples): List of triples for the 'Sex' column.
@@ -47,10 +48,9 @@ def add_condition_columns(dataframe, register_path, age_values, sex_values, anim
         for _, row in new_slides_frame_defined.iterrows():
             slide_no = row['Slide_no']  # Get Slide_no from the current row
             # Find the matching file_name in dataframe that contains the Slide_no as a substring
-            dataframe['diff'] = dataframe['file_name'].apply(
-                lambda x: np.nan if pd.isna(x) else np.abs(int(re.search(r'\d+', x).group()) - int(slide_no))
-            )
-            closest_index = register_frame['diff'].idxmin()
+            dataframe['diff'] = np.abs(dataframe['file_number'] - slide_no)
+
+            closest_index = dataframe['diff'].idxmin()
             if not row.empty:
                 # Use .loc to update the correct row in the original dataframe
                 dataframe.loc[closest_index, 'Age'] = str(int(row['Age (mo)'])) + 'm'
@@ -159,11 +159,11 @@ def get_base_filename(file_name):
     else:
         raise ValueError("Filename does not match expected pattern")
 
-def set_new_filepath(file_path):
+def set_chunked_label(file_path):
     file_extension = os.path.splitext(file_path)[1]  # Get the extension (e.g., '.czi', '.tif')
-    file_path_wo = os.path.splitext(file_path)[0]
+    file_path_wo_extension = os.path.splitext(file_path)[0]
     # Modify the file name by appending '_chunked' to the filename
-    modified_file_path = f"{file_path_wo}_chunked{file_extension}"
+    modified_file_path = f"{file_path_wo_extension}_chunked{file_extension}"
     print(f"Modified file path: {modified_file_path}")
     
     # Rename the file in the folder

@@ -48,6 +48,7 @@ def move_files(dataframe, register_path):
     
     Parameters:
         dataframe (pd.DataFrame): The dataframe containing the file paths (file_path column).
+        register_path (str): Path to the excel file that contains the metadata to update it.
     """
     register_frame = pd.read_excel(register_path)
 

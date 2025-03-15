@@ -54,24 +54,15 @@ for i, row in infoframe.iterrows():
     file_extension = os.path.splitext(file_path)[1]  # Get the extension (e.g., '.czi', '.tif')
 
     print(f"The file {file_name} is selected for processing")
-    if 'czi' in file_extension:
-        czi_file = get_czi_info(file_path)
-        chunk_and_save_czi(czi_file, 
-                            save_folderpath = result_folderpath, 
-                            base_filename = base_filename,
-                            max_size_chunk_gb = chunk_size, 
-                            channel_name = channel_name)
-        # Modify the name of the czi file to label that it was chunked
-        modified_file_path = set_new_filepath(file_path)
-        infoframe.at[i, 'file_path'] = modified_file_path
+    czi_file = get_czi_info(file_path)
+    chunk_and_save_czi(czi_file, 
+                        save_folderpath = result_folderpath, 
+                        base_filename = base_filename,
+                        max_size_chunk_gb = chunk_size, 
+                        channel_name = channel_name)
+    # Modify the name of the czi file to label that it was chunked
+    modified_file_path = set_new_filepath(file_path)
+    infoframe.at[i, 'file_path'] = modified_file_path
 
-    elif 'ims' in file_extension:
-        get_ims_info(file_path)
-        print("Chunk not yet tested for ims")
-        # Modify the name of the czi file to label that it was chunked
-        modified_file_path = set_new_filepath(file_path)
-        infoframe.at[i, 'file_path'] = modified_file_path
-    else:
-        print("No function to process this file format.")
 
 

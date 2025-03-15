@@ -198,6 +198,17 @@ def chunk_and_save_czi(czi_file,
     print("")
     return 
 
+def chunk_and_save_czi_files(input_folderpath,
+                             output_folderpath,
+                             register_path,
+                            conditions,
+                             ):
+    
+infoframe = get_images_infoframe(folderpath = folder_path, 
+                                 conditions = conditions, 
+                                 extension = extension)
+
+
 
 def maxproject_for_registration(czi_file, save_folderpath, channel_name = 'DAPI'):
     if isinstance(czi_file, str):
