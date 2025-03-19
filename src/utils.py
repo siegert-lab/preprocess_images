@@ -4,6 +4,22 @@ import math
 import re
 import pandas as pd
 
+def import_register(register_path, column):
+    # Read the Excel file into a DataFrame
+    register_frame = pd.read_excel(register_path)
+    # Ignore the files that were already renamed and store
+    new_slides_frame = register_frame[register_frame[column].isna()].copy()
+    # Ignore the rows in the excel file that are not labeled with the number of the glass slide
+    new_slides_frame_defined = new_slides_frame[new_slides_frame['Slide_no'].notna()].copy()
+    new_slides_frame_defined['Slide_no'] = new_slides_frame_defined['Slide_no'].astype(int)
+
+    return new_slides_frame_defined
+
+def filter_frame(dataframe, filter):
+    # Remove rows where the 'file_name' column contains the word 'filter'
+    filtered_dataframe = dataframe[~dataframe['file_name'].str.contains(filter, case=False, na=False)]
+    return filtered_dataframe
+
 def add_condition_columns(dataframe, register_path, age_values, sex_values, animal_values):
     '''
     Add columns 'Age', 'Sex', 'Animal', and 'Slide' to a dataframe. The 'Slide' column
@@ -38,18 +54,12 @@ def add_condition_columns(dataframe, register_path, age_values, sex_values, anim
     
     if register_path is not None:
         # Read the Excel file into a DataFrame
-        register_frame = pd.read_excel(register_path)
-        # Ignore the files that were already renamed and store
-        new_slides_frame = register_frame[register_frame['renamed/stored'].isna()].copy()
-        # Ignore the rows in the excel file that are not labeled with the number of the glass slide
-        new_slides_frame_defined = new_slides_frame[new_slides_frame['Slide_no'].notna()].copy()
-        new_slides_frame_defined['Slide_no'] = new_slides_frame_defined['Slide_no'].astype(int)
+        new_slides_frame_defined = import_register(register_path, column = 'renamed/stored')
         # Loop through each row of interest in the excel file 
         for _, row in new_slides_frame_defined.iterrows():
             slide_no = row['Slide_no']  # Get Slide_no from the current row
             # Find the matching file_name in dataframe that contains the Slide_no as a substring
             dataframe['diff'] = np.abs(dataframe['file_number'] - slide_no)
-
             closest_index = dataframe['diff'].idxmin()
             if not row.empty:
                 # Use .loc to update the correct row in the original dataframe
@@ -144,7 +154,7 @@ def update_file_name_and_path(dataframe, project_path=None, folder_name = 'raw_i
 
 def get_base_filename(file_name):
     # Use regular expressions to extract the components
-    match = re.match(r"raw_image_Age_(\d+m)_Sex_(\w)_Animal_(\d+)_Slide_(\d+)_", file_name)
+    match = re.match(r"raw_image_Age_(\d+m)_Sex_(\w)_Animal_(\d+)_Slide_(\d+)", file_name)
     
     if match:
         # Extract values from the match groups
@@ -154,7 +164,7 @@ def get_base_filename(file_name):
         slide = match.group(4)  # Slide, e.g., '0'
         
         # Create the base filename
-        base_filename = f"microglia_Age_{age}_Sex_{sex}_Animal_{animal}_Slide_{slide}_"
+        base_filename = f"microglia_Age_{age}_Sex_{sex}_Animal_{animal}_Slide_{slide}"
         return base_filename, age, sex, animal, slide
     else:
         raise ValueError("Filename does not match expected pattern")

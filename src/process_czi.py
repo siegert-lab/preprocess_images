@@ -5,7 +5,8 @@ import os
 import copy
 # import xml.etree.ElementTree as ET
 import math
-from utils import divide_image_into_mesh, generate_mesh_coordinates, get_nb_pix_chunk_l, downsample_by_2
+from utils import divide_image_into_mesh, generate_mesh_coordinates, get_nb_pix_chunk_l, downsample_by_2, import_register, filter_frame
+from io_images import get_images_infoframe
 
 def get_channel_info(czi_file):
     if isinstance(czi_file, str):
@@ -201,12 +202,22 @@ def chunk_and_save_czi(czi_file,
 def chunk_and_save_czi_files(input_folderpath,
                              output_folderpath,
                              register_path,
-                            conditions,
+                            conditions =  ['Age', 'Sex', 'Animal'],
                              ):
     
-infoframe = get_images_infoframe(folderpath = folder_path, 
-                                 conditions = conditions, 
-                                 extension = extension)
+    dataframe = get_images_infoframe(folderpath = input_folderpath, 
+                                    conditions = conditions, 
+                                    extension = '.czi')
+    print('Original df')
+    print(dataframe)
+
+    register_frame = import_register(register_path, column = 'chunked')
+    print('Register df')
+    print(register_frame)
+
+    filtered_dataframe = filter_frame(dataframe, filter = 'chunked'):
+    print('CZI to chunk')
+    print(filtered_dataframe)
 
 
 

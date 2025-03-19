@@ -19,7 +19,13 @@ def get_images_infoframe(folderpath,
         char0 = "%s%s/*%s"
         char1 = "/*"
         char2 = "/"  
-    
+    print("folder_path", type(folderpath), folderpath)
+    # List all files and directories in the specified folder
+    folder_content = os.listdir(folderpath)
+
+    # Print the content
+    for item in folder_content:
+        print(item)
     # get all the file paths in folder_location
     filepaths = glob.glob(
         char0 % (folderpath, char1 * len(conditions), extension)

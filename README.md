@@ -25,6 +25,19 @@ When you have created filaments in an IMS file, you can convert these filaments 
 
 # Rename and Store CZI Files
 
+(preprocess_img) PS C:\Users\siege\Desktop\preprocess_images\scripts> python run_a_store_czi.py --input_folderpath \\scratch4.ista.ac.at\scratch\siegegrp\_ImageDrop\Zeiss-AxioScan-Z1\7568_siegegrp_AlVe
+folder_path <class 'str'> \\scratch4.ista.ac.at\scratch\siegegrp\_ImageDrop\Zeiss-AxioScan-Z1\7568_siegegrp_AlVe
+Traceback (most recent call last):
+  File "C:\Users\siege\Desktop\preprocess_images\scripts\run_a_store_czi.py", line 65, in <module>
+    main()
+  File "C:\Users\siege\Desktop\preprocess_images\scripts\run_a_store_czi.py", line 52, in main
+    infoframe = store_raw_images(input_folderpath=input_folderpath,
+  File "c:\users\siege\desktop\preprocess_images\src\io_images.py", line 104, in store_raw_images
+    dataframe = get_images_infoframe(input_folderpath,
+  File "c:\users\siege\desktop\preprocess_images\src\io_images.py", line 24, in get_images_infoframe
+    folder_content = os.listdir(folderpath)
+OSError: [WinError 1326] The user name or password is incorrect: '\\\\scratch4.ista.ac.at\\scratch\\siegegrp\\_ImageDrop\\Zeiss-AxioScan-Z1\\7568_siegegrp_AlVe'
+
 ## Overview
 
 When you receive the CZI files from the Iof, they can be automatically renamed and stored. The storage process is automated to ensure that the files are well organized in a tree structure as follows: `Age/Sex/Animal/`. 
@@ -46,13 +59,13 @@ This standardization of file names helps facilitate the next processing steps, s
   - The **Animal** column should contain integers.  
   - The **Slide_no** column must contain a unique integer for each row. If two rows share the same number in the **Slide_no** column, they could be mixed up.
 
-- **Register File Update**: After a CZI file is stored, the register Excel file is updated by adding an "X" in the **renamed/stored** column of the row corresponding to the file that was renamed and stored.
+- **Register File Update**: After a CZI file is stored, the register Excel file is updated automatically by adding an "X" in the **renamed/stored** column of the row corresponding to the file that was renamed and stored.
 
 # How to Rename and Store Using the Windows Computer of the Lab
 
 1) The register Excel file containing the metadata of the slides should be closed.
 
-2) Open a terminal.
+2) Open a terminal as admnistrator, right click run as administrator.
 
 3) Activate the environment containing the necessary Python packages. To do so, write in the terminal:  
    `conda activate preprocess_img`

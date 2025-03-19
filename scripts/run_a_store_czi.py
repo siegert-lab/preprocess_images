@@ -20,7 +20,7 @@ def main():
     parser.add_argument(
         "-ifp", "--input_folderpath", 
         help="Path to the folder containing the .czi files", 
-        default=r"\\scratch4.ista.ac.at\scratch\siegegrp\_ImageDrop\Zeiss-AxioScan-Z1\7568_siegegrp_AlVe", 
+        default=r"\\scratch4.ista.ac.at\scratch\siegegrp\_ImageDrop\Zeiss-AxioScan-Z1\Alessandro_20250318", 
         nargs='?'
     )
     parser.add_argument(
