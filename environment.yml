@@ -1,4 +1,4 @@
-name: preprocess_img
+name: preprocess-img
 channels:
   - conda-forge
   - defaults
@@ -23,3 +23,4 @@ dependencies:
   - pip:
     - imaris_ims_file_reader
     - -e third_party/aicspylibczi
+    - git+https://git.ista.ac.at/csommer/bdv_toolz.git

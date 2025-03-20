@@ -4,8 +4,8 @@ import numpy as np
 import pandas as pd
 import tifffile as tiff
 from PIL import Image
-from utils import add_condition_columns, update_file_name_and_path
-from plot import plot_image
+from .utils import add_condition_columns, update_file_name_and_path
+from .plot import plot_image
 import shutil
 
 def get_images_infoframe(folderpath, 

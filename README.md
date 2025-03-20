@@ -1,8 +1,71 @@
+# Installation
+
+You can install the package using either Conda or pip. Follow the steps below based on your preferred package manager.
+
+## Prerequisites
+- Python 3.10 or higher is required
+- Git
+- ISTA credentials (username and password)
+
+## Using Conda
+1. Clone the Repository:
+```
+git clone git@github.com:siegert-lab/preprocess_images.git
+cd preprocess_images
+```
+
+2. Create and Activate the Conda Environment:
+```
+conda env create -f environment.yml
+conda activate preprocess-img
+```
+
+> **Note:** During environment creation, you will be prompted for your ISTA username and password when installing the bdv_toolz package (`git+https://git.ista.ac.at/csommer/bdv_toolz.git`).
+
+3. Install the Package:
+```
+pip install -e .
+```
+
+## Using pip
+1. Clone the Repository:
+```
+git clone git@github.com:siegert-lab/preprocess_images.git
+cd preprocess_images
+```
+
+2. Ensure Python 3.10 is installed on your system, then create and activate the virtual environment:
+```
+python -m venv preprocess-img
+```
+On macOS/Linux:
+```
+source preprocess-img/bin/activate
+```
+On Windows:
+```
+preprocess-img\Scripts\activate
+```
+
+3. Install the Required Packages:
+```
+pip install -r requirements.txt
+pip install -e .
+```
+
+> **Note:** During installation, you will be prompted for your ISTA username and password when installing the bdv_toolz package (`git+https://git.ista.ac.at/csommer/bdv_toolz.git`).
+
 # Generate SWC from Filaments in IMS files  
 
 ## Overview
 
 When you have created filaments in an IMS file, you can convert these filaments into SWC file where each microglia skeleton is stored in a SWC file.
+
+This functionality is built on top of:
+1. A MATLAB package called "ImarisReader" that allows reading IMS files directly in MATLAB
+2. The "NLMorphologyConverter.exe" executable from NeuroLand, used to correct and standardize the SWC files
+
+Both of these components are included in the `src/skeletonize` directory of this repository.
 
 ## How to Generate SWC from Filaments in IMS files Using the Windows Computer of the Lab
 
@@ -25,7 +88,7 @@ When you have created filaments in an IMS file, you can convert these filaments 
 
 # Rename and Store CZI Files
 
-(preprocess_img) PS C:\Users\siege\Desktop\preprocess_images\scripts> python run_a_store_czi.py --input_folderpath \\scratch4.ista.ac.at\scratch\siegegrp\_ImageDrop\Zeiss-AxioScan-Z1\7568_siegegrp_AlVe
+(preprocess-img) PS C:\Users\siege\Desktop\preprocess_images\scripts> python run_a_store_czi.py --input_folderpath \\scratch4.ista.ac.at\scratch\siegegrp\_ImageDrop\Zeiss-AxioScan-Z1\7568_siegegrp_AlVe
 folder_path <class 'str'> \\scratch4.ista.ac.at\scratch\siegegrp\_ImageDrop\Zeiss-AxioScan-Z1\7568_siegegrp_AlVe
 Traceback (most recent call last):
   File "C:\Users\siege\Desktop\preprocess_images\scripts\run_a_store_czi.py", line 65, in <module>
@@ -68,7 +131,7 @@ This standardization of file names helps facilitate the next processing steps, s
 2) Open a terminal as admnistrator, right click run as administrator.
 
 3) Activate the environment containing the necessary Python packages. To do so, write in the terminal:  
-   `conda activate preprocess_img`
+   `conda activate preprocess-img`
 
 4) Go to the directory containing the code of interest. To do so, write in the terminal:  
    `cd C:\Users\siege\Desktop\preprocess_images\scripts`

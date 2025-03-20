@@ -215,7 +215,7 @@ def chunk_and_save_czi_files(input_folderpath,
     print('Register df')
     print(register_frame)
 
-    filtered_dataframe = filter_frame(dataframe, filter = 'chunked'):
+    filtered_dataframe = filter_frame(dataframe, filter = 'chunked')
     print('CZI to chunk')
     print(filtered_dataframe)
 

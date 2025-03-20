@@ -1,5 +1,4 @@
 # Python 3.10 required
-# -e third_party/aicspylibczi
 imaris_ims_file_reader
 numpy>=1.21.6
 packaging>=23.1
