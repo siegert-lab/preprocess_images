@@ -79,9 +79,9 @@ Both of these components are included in the `src/skeletonize` directory of this
    - The second parameter is the path to the folder to store the new SWC files.  
 
 4) you can run the code with your parameters. To do so, write in the terminal:  
-  `.\run_skeletonize.bat "input_folder_path" "output_folder_path"`
-   - `input_folder_path` is a path like `\\fs.ista.ac.at\group\siegegrp\AlVe\_Bioimaging\Alessandro\Anesthetics (female)\BRAIN\KXA\FKBP5\FKBP5KO`
-   - `output_folder_path` is a path like `\\fs.ista.ac.at\group\siegegrp\AlVe\_Bioimaging\Alessandro\Anesthetics (female)\BRAIN\KXA\FKBP5\FKBP5KO\SWC`
+  `.\run_skeletonize.bat "your_input_folder_path" "your_output_folder_path"`
+   - `your_input_folder_path` is a path like `\\fs.ista.ac.at\group\siegegrp\AlVe\_Bioimaging\Alessandro\Anesthetics (female)\BRAIN\KXA\FKBP5\FKBP5KO`
+   - `your_output_folder_path` is a path like `\\fs.ista.ac.at\group\siegegrp\AlVe\_Bioimaging\Alessandro\Anesthetics (female)\BRAIN\KXA\FKBP5\FKBP5KO\SWC`
   
   a. Make sure to add "" around the paths.
   b. you can use ctrl c and ctrl v on terminal to copy and paste the paths.
@@ -124,7 +124,7 @@ This standardization of file names helps facilitate the next processing steps, s
 
 - **Register File Update**: After a CZI file is stored, the register Excel file is updated automatically by adding an "X" in the **renamed/stored** column of the row corresponding to the file that was renamed and stored.
 
-# How to Rename and Store Using the Windows Computer of the Lab
+## How to Rename and Store Using the Windows Computer of the Lab
 
 1) The register Excel file containing the metadata of the slides should be closed.
 
@@ -157,18 +157,47 @@ This standardization of file names helps facilitate the next processing steps, s
    If some parameters are already correct by default, you do not need to rewrite them. For example, if the project folder has a new name, you can write:  
    `python run_a_store_czi.py --output_folderpath \\fs.ista.ac.at\drives\aventuri\archive\siegegrp\AlVe\new_name`
 
-### Bonus:
-Instead of writing the full command with the long argument names, you can use the shortened versions:  
-Instead of:  
-`run_a_store_czi.py --input_folderpath a --output_folderpath b --register_name c`  
-You can write:  
-`run_a_store_czi.py -ifp a -ofp b -rn c`
-
-
+> **Note:** Instead of writing the full command with the long argument names, you can use the shortened versions:  
+> Instead of:  
+> `run_a_store_czi.py --input_folderpath a --output_folderpath b --register_name c`  
+> You can write:  
+> `run_a_store_czi.py -ifp a -ofp b -rn c`
 
 # Chunk czi files in tif files
 
-# TrAIce tif files 
+# Convert ND2 Files to BDV/XML+N5 Format
+
+## Overview
+
+This tool allows you to convert Nikon ND2 microscopy files to BigDataViewer (BDV) compatible N5 format. This conversion preserves the multidimensional structure of microscopy data while making it accessible through the BDV viewer.
+
+## How to Convert ND2 Files
+
+1) Activate the environment containing the necessary Python packages. To do so, write in the terminal:  
+   ```
+   conda activate preprocess-img
+   ```
+
+2) Go to the directory containing the scripts:  
+   ```
+   cd path/to/preprocess_images/scripts
+   ```
+
+3) Run the conversion script, specifying the input folder containing ND2 files and the output folder for N5 files:  
+   ```
+   python run_convert_nd2.py -ifp input_folder_path -ofp output_folder_path
+   ```
+   - `input_folder_path` is the path to the folder containing ND2 files
+   - `output_folder_path` is the path where the converted N5 files will be saved
+
+4) The script will:
+   - Find all ND2 files in the input folder
+   - Convert each file to N5 format with the same base name
+   - Display a progress bar showing the conversion status
+
+> **Note:** The conversion relies on the bdv_toolz package, which is installed as part of the environment setup.
+
+# TrAIce tif files
 CUDA_VISIBLE_DEVICES=0 trAIce img2swc -ip   /mnt/archive/archive/siegegrp/AlVe/MORPHOMICS2.0_MICROGLIA_BRAIN_ATLAS/chunk_images/glass_slide/tif_filename -wss "(128, 128, 16)" -wsb "(128, 128, 16)" -spd /mnt/archive/archive/siegegrp/AlVe/MORPHOMICS2.0_MICROGLIA_BRAIN_ATLAS/traced_microglia -mp ./ -spsl ./ -nw 1 -bsp ./
 
 

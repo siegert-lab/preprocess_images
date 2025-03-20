@@ -4,8 +4,8 @@ import numpy as np
 import pandas as pd
 import tifffile as tiff
 from PIL import Image
-from .utils import add_condition_columns, update_file_name_and_path
-from .plot import plot_image
+from utils import add_condition_columns, update_file_name_and_path
+from plot import plot_image
 import shutil
 
 def get_images_infoframe(folderpath, 
@@ -31,7 +31,9 @@ def get_images_infoframe(folderpath,
         char0 % (folderpath, char1 * len(conditions), extension)
     )
     print("Found %d files..." % len(filepaths))
-
+    if len(filepaths) == 0:
+        print(f"No files found in {folderpath}")
+        return pd.DataFrame()
     # convert the filepaths to array for metadata
     file_info = np.array(
         [_files.replace(folderpath, "").split(char2)[1:] for _files in filepaths]
