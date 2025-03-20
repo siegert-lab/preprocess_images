@@ -4,7 +4,7 @@
 
 When you have created filaments in an IMS file, you can convert these filaments into SWC file where each microglia skeleton is stored in a SWC file.
 
-# How to Generate SWC from Filaments in IMS files Using the Windows Computer of the Lab
+## How to Generate SWC from Filaments in IMS files Using the Windows Computer of the Lab
 
 1) Open a terminal.
 
