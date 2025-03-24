@@ -9,8 +9,11 @@ Usage: python process_nd2.py --input_folderpath /path/to/nd2/files --output_fold
 import os
 import re
 from tqdm import tqdm
+
 from bdv_toolz.cli import nd2_to_bdv
 import sys
+
+from bdv_toolz.bdv_creation import create_bdv_n5_multi_tile
 
 from io_images import get_images_infoframe
 
@@ -125,6 +128,10 @@ def convert_nd2_to_bdv(input_folderpath, output_folderpath):
     if info_frame.empty:
         print("No valid ND2 files found in the infoframe")
         return info_frame
+    else:
+        print("These files were found")
+        print(info_frame.to_string())
+        print('')
     
     # Create output filename and filepath columns
     for idx, row in info_frame.iterrows():
@@ -147,7 +154,8 @@ def convert_nd2_to_bdv(input_folderpath, output_folderpath):
             os.makedirs(subfolder, exist_ok=True)
     
     # Check for already converted files
-    print("Checking for already converted files...")
+    print("\nChecking for already converted files...\n")
+
     existing_files = get_images_infoframe(output_folderpath, extension=".n5", conditions=['Age', 'Sex', 'Side'])
     
     # Initialize conversion_status column to None
@@ -161,53 +169,63 @@ def convert_nd2_to_bdv(input_folderpath, output_folderpath):
         
         # Mark files that have already been converted by comparing the columns directly
         for idx, row in info_frame.iterrows():
-            if all(col in row for col in ['Age', 'Sex', 'Animal', 'Side']):
-                # Check if this file exists in existing_files by comparing all metadata columns
-                for _, exist_row in existing_files.iterrows():
-                    if (row['Age'] == exist_row['Age'] and 
-                        row['Sex'] == exist_row['Sex'] and 
-                        row['Side'] == exist_row['Side'] and
-                        row['Animal'] == exist_row['Animal']):
-                        info_frame.loc[idx, 'conversion_status'] = 'Already converted'
-                        print(f"File {row['file_name']} already converted, skipping")
-                        break
+            for _, exist_row in existing_files.iterrows():
+                if (row['Age'] == exist_row['Age'] and 
+                    row['Sex'] == exist_row['Sex'] and 
+                    row['Side'] == exist_row['Side'] and
+                    row['Animal'] == exist_row['Animal']):
+
+                    info_frame.loc[idx, 'conversion_status'] = 'Already converted'
+                    print(f"\nFile {row['file_name']} already converted, skipping\n")
+                    break
     else:
-        print("No existing files found in the output folder.")
+        print("\nNo existing files found in the output folder.\n")
     
     # Process each ND2 file in the dataframe
     for idx, row in tqdm(info_frame.iterrows(), total=len(info_frame), desc="Converting ND2 files"):
         if 'conversion_status' in row and row['conversion_status'] == 'Already converted':
             continue
             
-        nd2_file = row['file_path']
-        output_file = row['output_filepath']
+        nd2_file_path = row['file_path']
+        output_file_path = row['output_filepath']
         
         # Directory has already been created earlier
-        print(f"Converting {nd2_file} to {output_file}")
+        print(f"\nConverting {nd2_file_path} to {output_file_path}\n")
         try:
-            # Use the CLI function with command-line arguments
-            # Temporarily save original sys.argv
-            original_argv = sys.argv.copy()
+            # # Temporarily save original sys.argv
+            # original_argv = sys.argv.copy()
+            # # Set sys.argv to the arguments we want to pass
+            # sys.argv = ['nd2_to_bdv', nd2_file, output_file, '--read_tile_positions']
+            # # Call the function
+            # nd2_to_bdv()
+            # # Restore original sys.argv
+            # sys.argv = original_argv
             
-            # Set sys.argv to the arguments we want to pass
-            sys.argv = ['nd2_to_bdv', nd2_file, output_file]
-            
-            # Call the function without arguments
-            nd2_to_bdv()
-            
-            # Restore original sys.argv
-            sys.argv = original_argv
-            
-            print(f"Successfully converted {row['file_name']} to BDV/XML+N5 format")
+            create_bdv_n5_multi_tile(
+                    nd2_file_path, 
+                    out_n5= output_file_path,
+                    tiles = None,
+                    channels = None,
+                    rounds = None,
+                    z_slc = None,
+                    yes = True,
+                    ca_json = None,
+                    ff_json = None,
+                    overwrite = 'skip',
+                    downscale_factors = ((1,2,2),(1,2,2)),
+                    read_tile_positions = True
+            )
+
+            print(f"\nSuccessfully converted {row['file_name']} to BDV/XML+N5 format\n")
             
             # Update conversion status
             info_frame.loc[idx, 'conversion_status'] = 'Success'
         except Exception as e:
-            print(f"Error converting {row['file_name']}: {str(e)}")
+            print(f"\nError converting {row['file_name']}: {str(e)}\n")
             info_frame.loc[idx, 'conversion_status'] = f'Error: {str(e)}'
     
     # Get updated list of files in the output folder after conversion
-    print("Getting final state of output folder...")
+    print("\nGetting final state of output folder...\n")
     updated_existing_files = get_images_infoframe(output_folderpath, extension=".n5", conditions=['Age', 'Sex', 'Side'])
     
     # Extract Animal information from filenames

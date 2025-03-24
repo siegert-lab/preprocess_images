@@ -7,8 +7,8 @@ import argparse
 from process_nd2 import convert_nd2_to_bdv
 
 # Default paths
-DEFAULT_INPUT_PATH = "/run/user/1001/gvfs/smb-share:server=fs.ista.ac.at,share=drives/tnegrell/group/siegegrp/ThNe/_Bioimaging/development_retina"
-DEFAULT_OUTPUT_PATH = "/run/user/1001/gvfs/smb-share:server=fs.ista.ac.at,share=drives/tnegrell/group/siegegrp/ThNe/development_retina"
+DEFAULT_INPUT_PATH = "/mnt/gdrive/ThNe/_Bioimaging/development_retina"
+DEFAULT_OUTPUT_PATH = "/mnt/gdrive/ThNe/development_retina/raw_images_n5"
 
 def main():
     parser = argparse.ArgumentParser(description="Convert ND2 files to BDV/XML+N5 format")
@@ -21,8 +21,8 @@ def main():
     
     args = parser.parse_args()
     
-    print(f"Input folder: {args.input_folderpath}")
-    print(f"Output folder: {args.output_folderpath}")
+    print(f"\nInput folder: {args.input_folderpath}\n")
+    print(f"\nOutput folder: {args.output_folderpath}\n")
     
     # Ensure output directory exists
     os.makedirs(args.output_folderpath, exist_ok=True)
@@ -30,7 +30,7 @@ def main():
     # Convert files and get the final state of the output folder
     output_files = convert_nd2_to_bdv(args.input_folderpath, args.output_folderpath)
     
-    print("Process completed!")
+    print("\nProcess completed!\n")
     # Print the infoframe result
     print(output_files.to_string())
 
