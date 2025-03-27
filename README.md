@@ -88,19 +88,6 @@ Both of these components are included in the `src/skeletonize` directory of this
 
 # Rename and Store CZI Files
 
-(preprocess-img) PS C:\Users\siege\Desktop\preprocess_images\scripts> python run_a_store_czi.py --input_folderpath \\scratch4.ista.ac.at\scratch\siegegrp\_ImageDrop\Zeiss-AxioScan-Z1\7568_siegegrp_AlVe
-folder_path <class 'str'> \\scratch4.ista.ac.at\scratch\siegegrp\_ImageDrop\Zeiss-AxioScan-Z1\7568_siegegrp_AlVe
-Traceback (most recent call last):
-  File "C:\Users\siege\Desktop\preprocess_images\scripts\run_a_store_czi.py", line 65, in <module>
-    main()
-  File "C:\Users\siege\Desktop\preprocess_images\scripts\run_a_store_czi.py", line 52, in main
-    infoframe = store_raw_images(input_folderpath=input_folderpath,
-  File "c:\users\siege\desktop\preprocess_images\src\io_images.py", line 104, in store_raw_images
-    dataframe = get_images_infoframe(input_folderpath,
-  File "c:\users\siege\desktop\preprocess_images\src\io_images.py", line 24, in get_images_infoframe
-    folder_content = os.listdir(folderpath)
-OSError: [WinError 1326] The user name or password is incorrect: '\\\\scratch4.ista.ac.at\\scratch\\siegegrp\\_ImageDrop\\Zeiss-AxioScan-Z1\\7568_siegegrp_AlVe'
-
 ## Overview
 
 When you receive the CZI files from the Iof, they can be automatically renamed and stored. The storage process is automated to ensure that the files are well organized in a tree structure as follows: `Age/Sex/Animal/`. 
@@ -138,7 +125,7 @@ This standardization of file names helps facilitate the next processing steps, s
 
 5) Now you have to check 3 parameters:  
    - The first parameter is the path to the folder containing the new CZI files.  
-     By default: `\\scratch4.ista.ac.at\scratch\siegegrp\_ImageDrop\Zeiss-AxioScan-Z1\7568_siegegrp_AlVe`  
+     By default: `\\scratch4.ista.ac.at\scratch\siegegrp\_ImageDrop\Zeiss-AxioScan-Z1\Alessandro_20250318`  
    - The second parameter is the path to the folder of the project. This folder should contain a folder `raw_images` and a register Excel file.  
      By default: `\\fs.ista.ac.at\drives\aventuri\archive\siegegrp\AlVe\MORPHOMICS2.0_MICROGLIA_BRAIN_ATLAS`  
    - The third parameter is the name of the register Excel file that should be in the folder of the project.  
