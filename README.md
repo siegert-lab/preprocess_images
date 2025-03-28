@@ -156,33 +156,131 @@ This standardization of file names helps facilitate the next processing steps, s
 
 ## Overview
 
-This tool allows you to convert Nikon ND2 microscopy files to BigDataViewer (BDV) compatible N5 format. This conversion preserves the multidimensional structure of microscopy data while making it accessible through the BDV viewer.
+This tool converts Nikon ND2 microscopy files to BigDataViewer (BDV)-compatible N5 format. The conversion preserves the multidimensional structure of microscopy data, making it accessible through the BDV viewer.  
+
+It is built on top of the tools available in [bdv_toolz](https://git.ista.ac.at/csommer/bdv_toolz).  
+
+Some functions in this package are specific to cases where file names follow the pattern:  
+**`slide_Pxx_S_i00j.nd2`** (representing Age, Sex, Animal, and Side, referred to as **ASAS**).  
+These specific functions have the suffix **`asas`**.
+
+---
 
 ## How to Convert ND2 Files
 
-1) Activate the environment containing the necessary Python packages. To do so, write in the terminal:  
-   ```
-   conda activate preprocess-img
-   ```
+If your files follow the **`slide_Pxx_S_i00j.nd2`** pattern, follow these steps.  
+Otherwise, you may need to define your own API around the function that converts ND2 to XML+N5, or refer to the **Notes** section below.
 
-2) Go to the directory containing the scripts:  
-   ```
-   cd path/to/preprocess_images/scripts
-   ```
+### 1. Activate the Conda Environment  
+Activate the environment containing the necessary Python packages by running:
 
-3) Run the conversion script, specifying the input folder containing ND2 files and the output folder for N5 files:  
-   ```
-   python run_convert_nd2.py -ifp input_folder_path -ofp output_folder_path
-   ```
-   - `input_folder_path` is the path to the folder containing ND2 files
-   - `output_folder_path` is the path where the converted N5 files will be saved
+    conda activate preprocess-img
 
-4) The script will:
-   - Find all ND2 files in the input folder
-   - Convert each file to N5 format with the same base name
-   - Display a progress bar showing the conversion status
+### 2. Navigate to the Scripts Directory  
+Move to the directory containing the conversion scripts:
 
-> **Note:** The conversion relies on the bdv_toolz package, which is installed as part of the environment setup.
+    cd path/to/preprocess_images/scripts
+
+### 3. Run the Conversion Script  
+Execute the following command, specifying the input folder containing ND2 files, the output folder for N5 files, and whether to use 50% of your CPU for parallel processing:
+
+    python run_convert_nd2.py -ifp input_folder_path -ofp output_folder_path -par
+
+- `input_folder_path`: Path to the folder containing ND2 files.  
+- `output_folder_path`: Path where the converted N5 files will be saved.  
+- `-par`: Optional flag to enable parallel processing using 50% of available CPU cores. Omit this flag to use a simple for-loop instead.
+
+### 4. What the Script Does  
+- Identifies all ND2 files in the input folder.  
+- Converts each file that is not already converted in the output folder to N5 format with the same base name.  
+- Displays a progress bar to show conversion status.
+
+---
+
+## Notes  
+
+### Single-File Conversion via Terminal  
+To convert a single ND2 file using the terminal, run:
+
+    nd2_to_bdv path_to_input_file.nd2 path_to_output_file.n5 --ds "(1,2,2),(1,2,2)" --read_tile_positions
+
+### Single-File Conversion via Python Script  
+To convert a single ND2 file within a Python script, use:
+
+```python
+create_bdv_n5_multi_tile(
+    nd2_file_path, 
+    out_n5=output_file_path,
+    tiles=None,
+    channels=None,
+    rounds=None,
+    z_slc=None,
+    yes=True,
+    ca_json=None,
+    ff_json=None,
+    overwrite='skip',
+    downscale_factors=((1, 2, 2), (1, 2, 2)),
+    read_tile_positions=True
+)
+```
+
+
+# Stitch BDV/XML+N5 Images using BigStitcher Plugin on Fiji
+
+## Overview  
+
+BigStitcher is a plugin available in **Fiji**, not within this Python package.  
+It is useful for automatically stitching microscopy images.  
+
+---
+
+## How to Stitch XML+N5 Files  
+
+### Installation  
+
+To install BigStitcher in Fiji, follow these steps:  
+
+1. Open **Fiji**.  
+2. Click on **Help**.  
+3. Click on **Update**.  
+4. Click on **Manage Update Sites**.  
+5. In the **Search** bar, type `Big`.  
+6. Tick **BigStitcher**.  
+7. Click on **Apply and Close**.  
+
+---
+
+### Usage  
+
+To stitch XML+N5 files using BigStitcher:  
+
+1. Click on **Plugins → BigStitcher → BigStitcher**.  
+2. Select the **path to your XML file**, then click **OK**.  
+3. A **BDV window** and a **Stitching Explorer** will open.  
+4. In **Stitching Explorer**, press `Ctrl+A` to select all tiles.  
+5. Right-click and select **Stitch Dataset...**.  
+6. Choose the **Grouped View**, then click **OK**.  
+7. Select the **Downsampling Option**, then click **OK**.  
+8. Wait for the **pairwise computing** to complete.  
+9. When prompted, in **Preview Mode**, click **Yes**.  
+10. Click on **Apply and Run Global Optimization**, then **OK**.  
+11. Click on **Save** in **Stitching Explorer**.  
+
+To fuse stitched tiles using Bigstitcher
+
+1. Select the tiles you want to fuse using ctrl
+2. right click and select Image Fusion ...
+3. select the parameters you want 
+   I use Bounding Box: All views
+   Downsampling: 2
+   interpolation: Linear Interpolation
+   Fusion type: Avg, Blending
+   Pixel type: 16-bit
+   Produce one fused image for: Each timepoint and channel
+   Fused image: OME-ZARR
+
+---
+
 
 # TrAIce tif files
 CUDA_VISIBLE_DEVICES=0 trAIce img2swc -ip   /mnt/archive/archive/siegegrp/AlVe/MORPHOMICS2.0_MICROGLIA_BRAIN_ATLAS/chunk_images/glass_slide/tif_filename -wss "(128, 128, 16)" -wsb "(128, 128, 16)" -spd /mnt/archive/archive/siegegrp/AlVe/MORPHOMICS2.0_MICROGLIA_BRAIN_ATLAS/traced_microglia -mp ./ -spsl ./ -nw 1 -bsp ./

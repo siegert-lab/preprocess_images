@@ -37,7 +37,7 @@ def extract_animal_from_filename(filename):
         return animal_match.group(1)
     return None
 
-def extract_animal_from_dataframe(dataframe):
+def set_animal_column_from_dataframe(dataframe):
     """
     Extract Animal IDs from filenames in the dataframe.
     
@@ -64,7 +64,7 @@ def extract_animal_from_dataframe(dataframe):
     
     return dataframe
 
-def get_nd2_infoframe(folderpath):
+def get_nd2_infoframe_asas(folderpath):
     """
     Get information from ND2 files in the specified folder.
     Extracts metadata from filenames matching the pattern: slide_Pxx_S_i00j.nd2
@@ -104,6 +104,47 @@ def get_nd2_infoframe(folderpath):
         else:
             print(f"Warning: File {basename} does not match the expected pattern and will be skipped for metadata extraction.")
     
+    return info_frame
+
+def set_output_asas(info_frame, output_folderpath):
+    for idx, row in info_frame.iterrows():
+        if all(col in row for col in ['Age', 'Sex', 'Animal', 'Side']):
+            # Create output filename with the format: retina_Age_Pxx_Sex_S_Animal_i_Side_j.n5
+            info_frame.loc[idx, 'output_filename'] = f"retina_Age_{row['Age']}_Sex_{row['Sex']}_Side_{row['Side']}_Animal_{row['Animal']}.n5"
+            
+            # Create subdirectory structure: Age/Sex/Side
+            subfolder = os.path.join(
+                output_folderpath, 
+                row['Age'], 
+                row['Sex'], 
+                row['Side']
+            )
+            
+            # Create the full output filepath
+            info_frame.loc[idx, 'output_filepath'] = os.path.join(subfolder, info_frame.loc[idx, 'output_filename'])
+            
+            # Create the subfolder immediately
+            os.makedirs(subfolder, exist_ok=True)
+    return info_frame
+
+def check_already_converted_asas(info_frame, existing_files):
+    if not existing_files.empty:
+        # Extract Animal information from filenames
+        existing_files = set_animal_column_from_dataframe(existing_files)
+        
+        # Mark files that have already been converted by comparing the columns directly
+        for idx, row in info_frame.iterrows():
+            for _, exist_row in existing_files.iterrows():
+                if (row['Age'] == exist_row['Age'] and 
+                    row['Sex'] == exist_row['Sex'] and 
+                    row['Side'] == exist_row['Side'] and
+                    row['Animal'] == exist_row['Animal']):
+
+                    info_frame.loc[idx, 'conversion_status'] = 'Already converted'
+                    print(f"\nFile {row['file_name']} already converted, skipping\n")
+                    break
+    else:
+        print("\nNo existing files found in the output folder.\n")
     return info_frame
 
 def process_nd2_file(row):
@@ -151,7 +192,20 @@ def parallel_process_nd2(info_frame):
 
     return info_frame
 
-def convert_nd2_to_bdv(input_folderpath, output_folderpath):
+def loop_process_nd2(info_frame):
+    """Run ND2 file conversion sequentially."""
+    results = []
+    for _, row in tqdm(info_frame.iterrows(), total=len(info_frame), desc="Converting ND2 files"):
+        result = process_nd2_file(row)
+        results.append(result)
+
+    # Update dataframe with conversion results
+    for file_name, status in results:
+        info_frame.loc[info_frame['file_name'] == file_name, 'conversion_status'] = status
+
+    return info_frame    
+
+def convert_nd2_to_bdv_asas(input_folderpath, output_folderpath, is_parallel):
     """
     Convert ND2 files in the infoframe to BDV/XML+N5 format and save them in output_folderpath.
     
@@ -169,7 +223,8 @@ def convert_nd2_to_bdv(input_folderpath, output_folderpath):
     """
     # Ensure output directory exists
     os.makedirs(output_folderpath, exist_ok=True)
-    info_frame = get_nd2_infoframe(input_folderpath)
+
+    info_frame = get_nd2_infoframe_asas(input_folderpath)
     
     if info_frame.empty:
         print("No valid ND2 files found in the infoframe")
@@ -180,24 +235,8 @@ def convert_nd2_to_bdv(input_folderpath, output_folderpath):
         print('')
     
     # Create output filename and filepath columns
-    for idx, row in info_frame.iterrows():
-        if all(col in row for col in ['Age', 'Sex', 'Animal', 'Side']):
-            # Create output filename with the format: retina_Age_Pxx_Sex_S_Animal_i_Side_j.n5
-            info_frame.loc[idx, 'output_filename'] = f"retina_Age_{row['Age']}_Sex_{row['Sex']}_Side_{row['Side']}_Animal_{row['Animal']}.n5"
-            
-            # Create subdirectory structure: Age/Sex/Side
-            subfolder = os.path.join(
-                output_folderpath, 
-                row['Age'], 
-                row['Sex'], 
-                row['Side']
-            )
-            
-            # Create the full output filepath
-            info_frame.loc[idx, 'output_filepath'] = os.path.join(subfolder, info_frame.loc[idx, 'output_filename'])
-            
-            # Create the subfolder immediately
-            os.makedirs(subfolder, exist_ok=True)
+    info_frame = set_output_asas(info_frame, output_folderpath=output_folderpath)
+
     
     # Check for already converted files
     print("\nChecking for already converted files...\n")
@@ -209,33 +248,19 @@ def convert_nd2_to_bdv(input_folderpath, output_folderpath):
         info_frame['conversion_status'] = None
     
     # Only check for existing files if any were found
-    if not existing_files.empty:
-        # Extract Animal information from filenames
-        existing_files = extract_animal_from_dataframe(existing_files)
-        
-        # Mark files that have already been converted by comparing the columns directly
-        for idx, row in info_frame.iterrows():
-            for _, exist_row in existing_files.iterrows():
-                if (row['Age'] == exist_row['Age'] and 
-                    row['Sex'] == exist_row['Sex'] and 
-                    row['Side'] == exist_row['Side'] and
-                    row['Animal'] == exist_row['Animal']):
-
-                    info_frame.loc[idx, 'conversion_status'] = 'Already converted'
-                    print(f"\nFile {row['file_name']} already converted, skipping\n")
-                    break
-    else:
-        print("\nNo existing files found in the output folder.\n")
+    info_frame = check_already_converted_asas(info_frame = info_frame, existing_files= existing_files)
     
     # Process each ND2 file in the dataframe
-
-    info_frame = parallel_process_nd2(info_frame)
+    if is_parallel:
+        info_frame = parallel_process_nd2(info_frame)
+    else:
+        info_frame = loop_process_nd2(info_frame)
 
     # Get updated list of files in the output folder after conversion
     print("\nGetting final state of output folder...\n")
     updated_existing_files = get_images_infoframe(output_folderpath, extension=".n5", conditions=['Age', 'Sex', 'Side'])
     
     # Extract Animal information from filenames
-    updated_existing_files = extract_animal_from_dataframe(updated_existing_files)
+    updated_existing_files = set_animal_column_from_dataframe(updated_existing_files)
     
     return updated_existing_files
