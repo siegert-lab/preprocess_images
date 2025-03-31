@@ -1,4 +1,4 @@
-import aicspylibczi
+import czi_reader as aicspylibczi
 import tifffile
 import numpy as np
 import os

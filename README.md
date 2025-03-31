@@ -27,6 +27,11 @@ conda activate preprocess-img
 pip install -e .
 ```
 
+4. Install third party
+```
+pip install git+https://git.ista.ac.at/csommer/bdv_toolz.git
+```
+
 ## Using pip
 1. Clone the Repository:
 ```
@@ -34,7 +39,7 @@ git clone git@github.com:siegert-lab/preprocess_images.git
 cd preprocess_images
 ```
 
-2. Ensure Python 3.10 is installed on your system, then create and activate the virtual environment:
+1. Ensure Python 3.10 is installed on your system, then create and activate the virtual environment:
 ```
 python -m venv preprocess-img
 ```
@@ -47,7 +52,7 @@ On Windows:
 preprocess-img\Scripts\activate
 ```
 
-3. Install the Required Packages:
+1. Install the Required Packages:
 ```
 pip install -r requirements.txt
 pip install -e .

@@ -8,8 +8,7 @@ from typing import BinaryIO, Tuple, Union
 import numpy as np
 import xml.etree.ElementTree as ET
 
-from . import aicspylibczi_types
-
+import aicspylibczi_types
 
 class CziFile(object):
     """Zeiss CZI file object.

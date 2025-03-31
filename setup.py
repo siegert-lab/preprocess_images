@@ -13,10 +13,6 @@ with open('requirements.txt') as f:
 # Filter out comments from requirements
 requirements = [req for req in requirements if not req.startswith('#') and req.strip()]
 
-# Add bdv_toolz to requirements if not already present
-if 'bdv_toolz' not in requirements:
-    requirements.append('bdv_toolz')
-
 setup(
     name='preprocess_images',
     version='0.1',
@@ -24,8 +20,4 @@ setup(
     package_dir={'': 'src'},
     python_requires='>=3.10',
     install_requires=requirements,
-    dependency_links=[
-        'file:third_party/aicspylibczi#egg=aicspylibczi',
-        'git+https://git.ista.ac.at/csommer/bdv_toolz.git#egg=bdv_toolz',
-    ],
 )
