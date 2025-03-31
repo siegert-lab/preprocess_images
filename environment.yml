@@ -23,6 +23,5 @@ dependencies:
   - pip:
     - imaris_ims_file_reader
     - patchify
-    - pylibCZIrw
-    - -e third_party/aicspylibczi
     - git+https://git.ista.ac.at/csommer/bdv_toolz.git
+    - -e ./third_party/aicspylibczi
