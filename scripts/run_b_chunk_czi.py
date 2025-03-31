@@ -51,7 +51,6 @@ for i, row in infoframe.iterrows():
     result_folderpath = os.path.normpath(result_folderpath)
 
     file_path = row['file_path']
-    file_extension = os.path.splitext(file_path)[1]  # Get the extension (e.g., '.czi', '.tif')
 
     print(f"The file {file_name} is selected for processing")
     czi_file = get_czi_info(file_path)

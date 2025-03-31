@@ -159,8 +159,8 @@ def get_base_filename(file_name):
         # Extract values from the match groups
         age = match.group(1)    # Age, e.g., '18m'
         sex = match.group(2)    # Sex, e.g., 'F'
-        animal = match.group(3) # Animal, e.g., '1'
-        slide = match.group(4)  # Slide, e.g., '0'
+        animal = 'Animal_' + str(match.group(3)) # Animal, e.g., '1'
+        slide = 'Slide_' + str(match.group(4))  # Slide, e.g., '0'
         
         # Create the base filename
         base_filename = f"microglia_Age_{age}_Sex_{sex}_Animal_{animal}_Slide_{slide}"
