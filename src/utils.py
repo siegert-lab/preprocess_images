@@ -66,6 +66,8 @@ def add_condition_columns(dataframe, register_path, age_values, sex_values, anim
                 dataframe.loc[closest_index, 'Age'] = str(int(row['Age (mo)'])) + 'm'
                 dataframe.loc[closest_index, 'Sex'] = row['Sex']
                 dataframe.loc[closest_index, 'Animal'] = 'Animal_' + str(int(row['Animal_replicate']))
+                dataframe.loc[closest_index, 'Slide'] = 'Slide_' + str(int(row['Slide']))
+
             dataframe = dataframe.drop('diff', axis=1)
 
     else:
@@ -78,9 +80,6 @@ def add_condition_columns(dataframe, register_path, age_values, sex_values, anim
         fill_column('Animal', animal_values)
     
     dataframe = dataframe.dropna()
-    # Create the 'Slide' column based on groups of 'Age', 'Sex', 'Animal'
-    dataframe['Slide'] = dataframe.groupby(['Age', 'Sex', 'Animal']).cumcount().astype(int).apply(lambda x: f"Slide_{x}")
-
     return dataframe
 
 def update_file_name_and_path(dataframe, project_path=None, folder_name = 'raw_images'):

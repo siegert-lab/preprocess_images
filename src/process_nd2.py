@@ -9,6 +9,7 @@ Usage: python process_nd2.py --input_folderpath /path/to/nd2/files --output_fold
 import os
 import re
 from tqdm import tqdm
+import multiprocessing
 
 from bdv_toolz.cli import nd2_to_bdv
 import sys
@@ -36,7 +37,7 @@ def extract_animal_from_filename(filename):
         return animal_match.group(1)
     return None
 
-def extract_animal_from_filenames(dataframe):
+def set_animal_column_from_dataframe(dataframe):
     """
     Extract Animal IDs from filenames in the dataframe.
     
@@ -63,7 +64,7 @@ def extract_animal_from_filenames(dataframe):
     
     return dataframe
 
-def get_nd2_infoframe(folderpath):
+def get_nd2_infoframe_asas(folderpath):
     """
     Get information from ND2 files in the specified folder.
     Extracts metadata from filenames matching the pattern: slide_Pxx_S_i00j.nd2
@@ -105,35 +106,7 @@ def get_nd2_infoframe(folderpath):
     
     return info_frame
 
-def convert_nd2_to_bdv(input_folderpath, output_folderpath):
-    """
-    Convert ND2 files in the infoframe to BDV/XML+N5 format and save them in output_folderpath.
-    
-    Parameters
-    ----------
-    input_folderpath : str
-        Path to the folder containing ND2 files
-    output_folderpath : str
-        Path to the folder where N5 files will be saved
-    
-    Returns
-    -------
-    pd.DataFrame
-        Updated DataFrame with all files in the output folder after conversion
-    """
-    # Ensure output directory exists
-    os.makedirs(output_folderpath, exist_ok=True)
-    info_frame = get_nd2_infoframe(input_folderpath)
-    
-    if info_frame.empty:
-        print("No valid ND2 files found in the infoframe")
-        return info_frame
-    else:
-        print("These files were found")
-        print(info_frame.to_string())
-        print('')
-    
-    # Create output filename and filepath columns
+def set_output_asas(info_frame, output_folderpath):
     for idx, row in info_frame.iterrows():
         if all(col in row for col in ['Age', 'Sex', 'Animal', 'Side']):
             # Create output filename with the format: retina_Age_Pxx_Sex_S_Animal_i_Side_j.n5
@@ -152,20 +125,12 @@ def convert_nd2_to_bdv(input_folderpath, output_folderpath):
             
             # Create the subfolder immediately
             os.makedirs(subfolder, exist_ok=True)
-    
-    # Check for already converted files
-    print("\nChecking for already converted files...\n")
+    return info_frame
 
-    existing_files = get_images_infoframe(output_folderpath, extension=".n5", conditions=['Age', 'Sex', 'Side'])
-    
-    # Initialize conversion_status column to None
-    if 'conversion_status' not in info_frame.columns:
-        info_frame['conversion_status'] = None
-    
-    # Only check for existing files if any were found
+def check_already_converted_asas(info_frame, existing_files):
     if not existing_files.empty:
         # Extract Animal information from filenames
-        existing_files = extract_animal_from_filenames(existing_files)
+        existing_files = set_animal_column_from_dataframe(existing_files)
         
         # Mark files that have already been converted by comparing the columns directly
         for idx, row in info_frame.iterrows():
@@ -180,55 +145,122 @@ def convert_nd2_to_bdv(input_folderpath, output_folderpath):
                     break
     else:
         print("\nNo existing files found in the output folder.\n")
+    return info_frame
+
+def process_nd2_file(row):
+    """Process a single ND2 file."""
+    if 'conversion_status' in row and row['conversion_status'] == 'Already converted':
+        return row['file_name'], 'Skipped'
+
+    nd2_file_path = row['file_path']
+    output_file_path = row['output_filepath']
+    
+    print(f"\nConverting {nd2_file_path} to {output_file_path}\n")
+    try:
+        create_bdv_n5_multi_tile(
+            nd2_file_path, 
+            out_n5=output_file_path,
+            tiles=None,
+            channels=None,
+            rounds=None,
+            z_slc=None,
+            yes=True,
+            ca_json=None,
+            ff_json=None,
+            overwrite='skip',
+            downscale_factors=((1, 2, 2), (1, 2, 2)),
+            read_tile_positions=True
+        )
+        print(f"\nSuccessfully converted {row['file_name']} to BDV/XML+N5 format\n")
+        return row['file_name'], 'Success'
+    except Exception as e:
+        print(f"\nError converting {row['file_name']}: {str(e)}\n")
+        return row['file_name'], f'Error: {str(e)}'
+
+def parallel_process_nd2(info_frame):
+    """Run ND2 file conversion in parallel."""
+    total_cpus = multiprocessing.cpu_count()
+    num_cpus = max(1, int(total_cpus * 0.5))
+    with multiprocessing.Pool(num_cpus) as pool:
+        results = list(tqdm(pool.imap(process_nd2_file, [row for _, row in info_frame.iterrows()]), 
+                            total=len(info_frame), 
+                            desc="Converting ND2 files"))
+
+    # Update dataframe with conversion results
+    for file_name, status in results:
+        info_frame.loc[info_frame['file_name'] == file_name, 'conversion_status'] = status
+
+    return info_frame
+
+def loop_process_nd2(info_frame):
+    """Run ND2 file conversion sequentially."""
+    results = []
+    for _, row in tqdm(info_frame.iterrows(), total=len(info_frame), desc="Converting ND2 files"):
+        result = process_nd2_file(row)
+        results.append(result)
+
+    # Update dataframe with conversion results
+    for file_name, status in results:
+        info_frame.loc[info_frame['file_name'] == file_name, 'conversion_status'] = status
+
+    return info_frame    
+
+def convert_nd2_to_bdv_asas(input_folderpath, output_folderpath, is_parallel):
+    """
+    Convert ND2 files in the infoframe to BDV/XML+N5 format and save them in output_folderpath.
+    
+    Parameters
+    ----------
+    input_folderpath : str
+        Path to the folder containing ND2 files
+    output_folderpath : str
+        Path to the folder where N5 files will be saved
+    
+    Returns
+    -------
+    pd.DataFrame
+        Updated DataFrame with all files in the output folder after conversion
+    """
+    # Ensure output directory exists
+    os.makedirs(output_folderpath, exist_ok=True)
+
+    info_frame = get_nd2_infoframe_asas(input_folderpath)
+    
+    if info_frame.empty:
+        print("No valid ND2 files found in the infoframe")
+        return info_frame
+    else:
+        print("These files were found")
+        print(info_frame.to_string())
+        print('')
+    
+    # Create output filename and filepath columns
+    info_frame = set_output_asas(info_frame, output_folderpath=output_folderpath)
+
+    
+    # Check for already converted files
+    print("\nChecking for already converted files...\n")
+
+    existing_files = get_images_infoframe(output_folderpath, extension=".n5", conditions=['Age', 'Sex', 'Side'])
+    
+    # Initialize conversion_status column to None
+    if 'conversion_status' not in info_frame.columns:
+        info_frame['conversion_status'] = None
+    
+    # Only check for existing files if any were found
+    info_frame = check_already_converted_asas(info_frame = info_frame, existing_files= existing_files)
     
     # Process each ND2 file in the dataframe
-    for idx, row in tqdm(info_frame.iterrows(), total=len(info_frame), desc="Converting ND2 files"):
-        if 'conversion_status' in row and row['conversion_status'] == 'Already converted':
-            continue
-            
-        nd2_file_path = row['file_path']
-        output_file_path = row['output_filepath']
-        
-        # Directory has already been created earlier
-        print(f"\nConverting {nd2_file_path} to {output_file_path}\n")
-        try:
-            # # Temporarily save original sys.argv
-            # original_argv = sys.argv.copy()
-            # # Set sys.argv to the arguments we want to pass
-            # sys.argv = ['nd2_to_bdv', nd2_file, output_file, '--read_tile_positions']
-            # # Call the function
-            # nd2_to_bdv()
-            # # Restore original sys.argv
-            # sys.argv = original_argv
-            
-            create_bdv_n5_multi_tile(
-                    nd2_file_path, 
-                    out_n5= output_file_path,
-                    tiles = None,
-                    channels = None,
-                    rounds = None,
-                    z_slc = None,
-                    yes = True,
-                    ca_json = None,
-                    ff_json = None,
-                    overwrite = 'skip',
-                    downscale_factors = ((1,2,2),(1,2,2)),
-                    read_tile_positions = True
-            )
+    if is_parallel:
+        info_frame = parallel_process_nd2(info_frame)
+    else:
+        info_frame = loop_process_nd2(info_frame)
 
-            print(f"\nSuccessfully converted {row['file_name']} to BDV/XML+N5 format\n")
-            
-            # Update conversion status
-            info_frame.loc[idx, 'conversion_status'] = 'Success'
-        except Exception as e:
-            print(f"\nError converting {row['file_name']}: {str(e)}\n")
-            info_frame.loc[idx, 'conversion_status'] = f'Error: {str(e)}'
-    
     # Get updated list of files in the output folder after conversion
     print("\nGetting final state of output folder...\n")
     updated_existing_files = get_images_infoframe(output_folderpath, extension=".n5", conditions=['Age', 'Sex', 'Side'])
     
     # Extract Animal information from filenames
-    updated_existing_files = extract_animal_from_filenames(updated_existing_files)
+    updated_existing_files = set_animal_column_from_dataframe(updated_existing_files)
     
     return updated_existing_files

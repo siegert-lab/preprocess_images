@@ -22,10 +22,6 @@ def get_images_infoframe(folderpath,
     print("folder_path", type(folderpath), folderpath)
     # List all files and directories in the specified folder
     folder_content = os.listdir(folderpath)
-
-    # Print the content
-    for item in folder_content:
-        print(item)
     # get all the file paths in folder_location
     filepaths = glob.glob(
         char0 % (folderpath, char1 * len(conditions), extension)
@@ -84,7 +80,8 @@ def move_files(dataframe, register_path):
             print(f"Moving {old_path} to {new_path}")
             # Drop the rows where 'diff' is NaN (this excludes the rows where 'Slide_no' was NaN)
             closest_index = register_frame['diff'].idxmin()
-            shutil.copy2(old_path, new_path)
+            # shutil.copy2(old_path, new_path)
+            shutil.move(old_path, new_path)
             print(f"Moved {old_path} to {new_path}")
             register_frame.loc[closest_index, 'renamed/stored'] = 'X'
             register_frame = register_frame.drop('diff', axis=1)
