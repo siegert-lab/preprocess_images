@@ -117,11 +117,6 @@ def update_file_name_and_path(dataframe, project_path=None, folder_name = 'raw_i
         # Generate the new file name based on the pattern
         if folder_name == 'raw_images':
             new_file_name = f"raw_image_Age_{age}_Sex_{sex}_{animal}_{slide}{file_extension}"
-        # TODO
-        # elif folder_name == 'chunk_images':
-        #     new_file_name = f"microglia_Age_{age}_Sex_{sex}_{animal}_{slide}_{file_name[10:]}"
-        # elif folder_name == 'zmax_projections':
-        #     new_file_name = f"zmax_proj_Age_{age}_Sex_{sex}_{animal}_{slide}_{file_name}"
 
         # Update the 'file_name' column
         dataframe.at[index, 'file_name'] = new_file_name
@@ -163,7 +158,7 @@ def get_base_filename(file_name):
         slide = 'Slide_' + str(match.group(4))  # Slide, e.g., '0'
         
         # Create the base filename
-        base_filename = f"microglia_Age_{age}_Sex_{sex}_Animal_{animal}_Slide_{slide}"
+        base_filename = f"microglia_Age_{age}_Sex_{sex}_{animal}_{slide}"
         return base_filename, age, sex, animal, slide
     else:
         raise ValueError("Filename does not match expected pattern")

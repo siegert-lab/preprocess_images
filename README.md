@@ -108,6 +108,7 @@ This standardization of file names helps facilitate the next processing steps, s
   - The **Sex** column should use uppercase letters ("M" or "F").  
   - The **Animal** column should contain integers.  
   - The **Slide_no** column must contain a unique integer for each row. If two rows share the same number in the **Slide_no** column, they could be mixed up.
+  - The **Slide** column must contain a integer that represent the i-th slice of one brain. So for one brain it is a integer between 0 and n, with n+1 the number of glass slides for the brain. 
 
 - **Register File Update**: After a CZI file is stored, the register Excel file is updated automatically by adding an "X" in the **renamed/stored** column of the row corresponding to the file that was renamed and stored.
 

@@ -2,10 +2,13 @@ import aicspylibczi
 import tifffile
 import numpy as np
 import os
+import json
 import copy
+import re
 # import xml.etree.ElementTree as ET
 import math
-from utils import divide_image_into_mesh, generate_mesh_coordinates, get_nb_pix_chunk_l, downsample_by_2, import_register, filter_frame
+from utils import divide_image_into_mesh, generate_mesh_coordinates, get_nb_pix_chunk_l, downsample_by_2, import_register, filter_frame, get_base_filename, set_chunked_label
+
 from io_images import get_images_infoframe
 
 def get_channel_info(czi_file):
@@ -62,10 +65,30 @@ def get_czi_info(czi_file):
         print('')
     return czi_file
 
-def get_czi_pixel_size(czi_file):
+def get_czi_pixel_size():
+    # if isinstance(czi_file, str):
+    #     czi_file = aicspylibczi.CziFile(czi_file)
+    return {'x':1/0.3249288, 'y':1/0.3249288, 'z':1.0000}
+
+def set_tif_metadata(czi_file, x_min_pix, x_max_pix, y_min_pix, y_max_pix, z_max_pix):
     if isinstance(czi_file, str):
         czi_file = aicspylibczi.CziFile(czi_file)
-    return {'x':0.3249288, 'y':0.3249288, 'z':1.0000}
+    pix_size = get_czi_pixel_size()
+    metadata = {#These values are in microns 
+                "ExtendMinX": x_min_pix*pix_size['x'],
+                "ExtendMaxX": x_max_pix*pix_size['x'],
+                "ExtendMinY": y_min_pix*pix_size['y'],
+                "ExtendMaxY": y_max_pix*pix_size['y'],
+                "ExtendMinZ": 0.,
+                "ExtendMaxZ": z_max_pix*pix_size['z'],
+                # These values are in pixels
+                "SizeX": abs(int(x_max_pix)-int(x_min_pix)),
+                "SizeY": abs(int(y_max_pix)-int(y_min_pix)),
+                "SizeZ": int(z_max_pix),
+
+
+            }
+    return metadata
 
 def _get_chunk_bbox(czi_file, max_size_chunk_gb=30):
     # For each sequence get a vector that contains information for chunking.
@@ -189,7 +212,10 @@ def chunk_and_save_czi(czi_file,
                     save_filepath = f"{base_filepath}.tif"
                 # Save the chunk as a TIFF file
                 print('shape: ', chunk_image.shape)
-                tifffile.imsave(save_filepath, chunk_image, metadata=pixel_size)
+                metadata_json = set_tif_metadata(czi_file, x_min, x_max, y_min, y_max, z_len)
+                metadata_json = json.dumps(metadata)
+
+                tifffile.imwrite(save_filepath, chunk_image, description=metadata_json)
                 del chunk_image
                 print(f"chunk {nn} of sequence {s} is saved in " + save_filepath)
         else:
@@ -200,12 +226,16 @@ def chunk_and_save_czi(czi_file,
     return 
 
 def chunk_and_save_czi_files(input_folderpath,
-                             output_folderpath,
                              register_path,
+                             chunk_size=10,
                             conditions =  ['Age', 'Sex', 'Animal'],
                              ):
+
+    result_foldername = "chunk_images"
+    channel_name = 'EGFP'
+    raw_images_path = os.path.join(input_folderpath, "raw_images")
     
-    dataframe = get_images_infoframe(folderpath = input_folderpath, 
+    dataframe = get_images_infoframe(folderpath = raw_images_path, 
                                     conditions = conditions, 
                                     extension = '.czi')
     print('Original df')
@@ -218,6 +248,42 @@ def chunk_and_save_czi_files(input_folderpath,
     filtered_dataframe = filter_frame(dataframe, filter = 'chunked')
     print('CZI to chunk')
     print(filtered_dataframe)
+
+    for i, row in filtered_dataframe.iterrows():
+        # The general folder
+        # The path folder Age/Sex/Animal/Slide
+        file_name = row['file_name']
+        base_filename, age, sex, animal, slide = get_base_filename(file_name)
+        result_folderpath = os.path.join(input_folderpath, result_foldername, str(age), str(sex), str(animal), str(slide))
+        # Normalize the base path (handles OS-specific separator issues)
+        result_folderpath = os.path.normpath(result_folderpath)
+
+        file_path = row['file_path']
+
+        print(f"The file {file_name} is selected for processing")
+        czi_file = get_czi_info(file_path)
+        chunk_and_save_czi(czi_file, 
+                            save_folderpath = result_folderpath, 
+                            base_filename = base_filename,
+                            max_size_chunk_gb = chunk_size, 
+                            channel_name = channel_name)
+        # Modify the name of the czi file to label that it was chunked
+        modified_file_path = set_chunked_label(file_path)
+        # update register
+        # Extract numbers using regex
+        i = int(re.search(r'\d+', animal).group())
+        j = int(re.search(r'\d+', slide).group())
+
+        # Now use i and j in your condition
+        index = (
+            (register_frame['Age'] == age) &
+            (register_frame['Sex'] == sex) &
+            (register_frame['Animal'] == i) &  
+            (register_frame['Slide'] == j)     
+        )
+        register_frame.loc[index, 'chunked'] = 'X'
+        register_frame.to_excel(register_path, index=False)
+        filtered_dataframe.at[i, 'file_path'] = modified_file_path
 
 
 
