@@ -1,6 +1,6 @@
 # import czi_reader as aicspylibczi
 
-import aicspylibczi
+import czi_reader as aicspylibczi
 import tifffile
 import numpy as np
 import os
@@ -143,7 +143,7 @@ def chunk_and_save_czi(czi_file,
     # Take the correct chanel that contains the microglia
     metadata = czi_file.meta
     correct_channel_idx = _get_channel_idx(metadata, channel_name)
-    pixel_size = get_czi_pixel_size(czi_file)
+    pixel_size = get_czi_pixel_size()
     # Get the number of bytes per pixel depending on the dtype of pixels
     pixel_type = czi_file.pixel_type
     if '16' in pixel_type:
@@ -295,7 +295,7 @@ def maxproject_for_registration(czi_file, save_folderpath, channel_name = 'DAPI'
     # Take the correct chanel that contains the nucleus
     metadata = czi_file.meta
     correct_channel_idx = _get_channel_idx(metadata, channel_name)
-    pixel_size = get_czi_pixel_size(czi_file)
+    pixel_size = get_czi_pixel_size()
     # Because z max proj is downsample
     pixel_size['x'] *= 2
     pixel_size['y'] *= 2
