@@ -276,15 +276,15 @@ def chunk_and_save_czi_files(input_folderpath,
         modified_file_path = set_chunked_label(file_path)
         # update register
         # Extract numbers using regex
-        i = int(re.search(r'\d+', animal).group())
-        j = int(re.search(r'\d+', slide).group())
+        ii = int(re.search(r'\d+', animal).group())
+        jj = int(re.search(r'\d+', slide).group())
 
         # Now use i and j in your condition
         index = (
-            (register_frame['Age'] == age) &
-            (register_frame['Sex'] == sex) &
-            (register_frame['Animal'] == i) &  
-            (register_frame['Slide'] == j)     
+            (int(register_frame['Age (mo)']) == int(age)) &
+            (str(register_frame['Sex']) == str(sex)) &
+            (int(register_frame['Animal_replicate']) == ii) &  
+            (int(register_frame['Slide']) == jj)     
         )
         register_frame.loc[index, 'chunked'] = 'X'
         register_frame.to_excel(register_path, index=False)
