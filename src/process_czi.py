@@ -9,7 +9,7 @@ import copy
 import re
 # import xml.etree.ElementTree as ET
 import math
-from utils import divide_image_into_mesh, generate_mesh_coordinates, get_nb_pix_chunk_l, downsample_by_2, import_register, filter_frame, get_base_filename, set_chunked_label
+from utils import divide_image_into_mesh, generate_mesh_coordinates, get_nb_pix_chunk_l, downsample_by_2, import_register, filter_frame, get_base_filename, set_chunked_label, close_file_handles 
 
 from io_images import get_images_infoframe
 
@@ -173,7 +173,7 @@ def chunk_and_save_czi(czi_file,
             X_max = X_min + x_len
             Y_max = Y_min + y_len
             nb_chunks = len(xy_coordinates)
-            print(f"There are {nb_chunks} chunks for seq {s}")
+            print(f"There are {nb_chunks} chunks for seq {s} (for brain slice {s})")
             print(f"So, there are {nb_chunks} .tif files to save")
             for nn, xy in enumerate(xy_coordinates):
                 x_min = xy[0]
@@ -271,6 +271,7 @@ def chunk_and_save_czi_files(input_folderpath,
                             max_size_chunk_gb = chunk_size, 
                             channel_name = channel_name)
         # Modify the name of the czi file to label that it was chunked
+        close_file_handles(file_path)
         modified_file_path = set_chunked_label(file_path)
         # update register
         # Extract numbers using regex

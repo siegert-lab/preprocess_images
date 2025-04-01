@@ -3,6 +3,18 @@ import numpy as np
 import math
 import re
 import pandas as pd
+import psutil
+
+def close_file_handles(file_path):
+    for proc in psutil.process_iter(['pid', 'name']):
+        try:
+            for open_file in proc.open_files():
+                if open_file.path == file_path:
+                    print(f"Closing process {proc.pid} ({proc.name()}) using the file.")
+                    proc.terminate()
+        except (psutil.NoSuchProcess, psutil.AccessDenied):
+            pass
+
 
 def import_register(register_path, column):
     # Read the Excel file into a DataFrame
