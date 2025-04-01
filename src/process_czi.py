@@ -9,7 +9,7 @@ import copy
 import re
 # import xml.etree.ElementTree as ET
 import math
-from utils import divide_image_into_mesh, generate_mesh_coordinates, get_nb_pix_chunk_l, downsample_by_2, import_register, filter_frame, get_base_filename, set_chunked_label
+from utils import divide_image_into_mesh, generate_mesh_coordinates, get_nb_pix_chunk_l, downsample_by_2, import_register, filter_frame, get_base_filename, set_chunked_label, close_file_handles 
 
 from io_images import get_images_infoframe
 
@@ -173,7 +173,7 @@ def chunk_and_save_czi(czi_file,
             X_max = X_min + x_len
             Y_max = Y_min + y_len
             nb_chunks = len(xy_coordinates)
-            print(f"There are {nb_chunks} chunks for seq {s}")
+            print(f"There are {nb_chunks} chunks for seq {s} (for brain slice {s})")
             print(f"So, there are {nb_chunks} .tif files to save")
             for nn, xy in enumerate(xy_coordinates):
                 x_min = xy[0]
@@ -215,7 +215,8 @@ def chunk_and_save_czi(czi_file,
                 # Save the chunk as a TIFF file
                 print('shape: ', chunk_image.shape)
                 metadata_json = set_tif_metadata(czi_file, x_min, x_max, y_min, y_max, z_len)
-                metadata_json = json.dumps(metadata)
+                
+                metadata_json = json.dumps(metadata_json)
 
                 tifffile.imwrite(save_filepath, chunk_image, description=metadata_json)
                 del chunk_image
@@ -269,19 +270,21 @@ def chunk_and_save_czi_files(input_folderpath,
                             base_filename = base_filename,
                             max_size_chunk_gb = chunk_size, 
                             channel_name = channel_name)
+        del czi_file
         # Modify the name of the czi file to label that it was chunked
+        close_file_handles(file_path)
         modified_file_path = set_chunked_label(file_path)
         # update register
         # Extract numbers using regex
-        i = int(re.search(r'\d+', animal).group())
-        j = int(re.search(r'\d+', slide).group())
+        ii = int(re.search(r'\d+', animal).group())
+        jj = int(re.search(r'\d+', slide).group())
 
         # Now use i and j in your condition
         index = (
-            (register_frame['Age'] == age) &
-            (register_frame['Sex'] == sex) &
-            (register_frame['Animal'] == i) &  
-            (register_frame['Slide'] == j)     
+            (int(register_frame['Age (mo)']) == int(age)) &
+            (str(register_frame['Sex']) == str(sex)) &
+            (int(register_frame['Animal_replicate']) == ii) &  
+            (int(register_frame['Slide']) == jj)     
         )
         register_frame.loc[index, 'chunked'] = 'X'
         register_frame.to_excel(register_path, index=False)
