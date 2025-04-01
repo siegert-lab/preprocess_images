@@ -281,13 +281,15 @@ def chunk_and_save_czi_files(input_folderpath,
 
         # Now use i and j in your condition
         index = (
-            (int(register_frame['Age (mo)']) == int(age)) &
-            (str(register_frame['Sex']) == str(sex)) &
-            (int(register_frame['Animal_replicate']) == ii) &  
-            (int(register_frame['Slide']) == jj)     
+            (register_frame['Age (mo)'].astype(int) == int(age)) &
+            (register_frame['Sex'].astype(str) == str(sex)) &
+            (register_frame['Animal_replicate'].astype(int) == ii) &  
+            (register_frame['Slide'].astype(int) == jj)     
         )
+
         register_frame.loc[index, 'chunked'] = 'X'
         register_frame.to_excel(register_path, index=False)
+
         filtered_dataframe.at[i, 'file_path'] = modified_file_path
 
 
