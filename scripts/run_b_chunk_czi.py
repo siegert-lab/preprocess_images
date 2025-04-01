@@ -20,7 +20,7 @@ def main():
     parser.add_argument(
         "-ifp", "--input_folderpath", 
         help="Path to the folder project, should contain a folder raw_images with tree structure organisation Age/Sex/Animal", 
-        default="archive/siegegrp/AlVe/MORPHOMICS2.0_MICROGLIA_BRAIN_ATLAS", 
+        default=r"\\fs.ista.ac.at\drives\aventuri\archive\siegegrp\AlVe\MORPHOMICS2.0_MICROGLIA_BRAIN_ATLAS", 
         nargs='?'
     )
     parser.add_argument(

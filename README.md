@@ -152,11 +152,37 @@ This standardization of file names helps facilitate the next processing steps, s
 
 > **Note:** Instead of writing the full command with the long argument names, you can use the shortened versions:  
 > Instead of:  
-> `run_a_store_czi.py --input_folderpath a --output_folderpath b --register_name c`  
+> `python run_a_store_czi.py --input_folderpath a --output_folderpath b --register_name c`  
 > You can write:  
-> `run_a_store_czi.py -ifp a -ofp b -rn c`
+> `python run_a_store_czi.py -ifp a -ofp b -rn c`
 
 # Chunk czi files in tif files
+
+## How to Chunk czi files and Store as tif files Using the Windows Computer of the Lab
+
+1) The register Excel file containing the metadata of the slides should be closed.
+
+2) Open a terminal as admnistrator, right click run as administrator.
+
+3) Activate the environment containing the necessary Python packages. To do so, write in the terminal:  
+   `conda activate preprocess-img`
+
+4) Go to the directory containing the code of interest. To do so, write in the terminal:  
+   `cd C:\Users\siege\Desktop\preprocess_images\scripts`
+
+5) Now you have to check 3 parameters:  
+   - The first parameter is the path to the folder of the project containing a folder `raw_images`, where `raw_images` contains the new CZI files in a tree structure Age/Sex/Animal.  
+     By default: `\\fs.ista.ac.at\drives\aventuri\archive\siegegrp\AlVe\MORPHOMICS2.0_MICROGLIA_BRAIN_ATLAS`  
+   - The second parameter is the name of the register Excel file that should be in the folder of the project.  
+     By default: `slide_register_JoNa.xlsx`
+   - The third parameter is the maximum size in GB of a chunk (of a saved tif file)
+      By default: 10
+
+6) If the default parameters are correct, you can run the code. To do so, write in the terminal:  
+   `python run_b_chunk_czi.py`
+
+   If the default parameters are not correct, you can run the code with your parameters. To do so, write in the terminal:  
+   `python run_a_store_czi.py --input_folderpath a --register_name b --chunk_size c`  
 
 # Convert ND2 Files to BDV/XML+N5 Format
 
