@@ -215,7 +215,8 @@ def chunk_and_save_czi(czi_file,
                 # Save the chunk as a TIFF file
                 print('shape: ', chunk_image.shape)
                 metadata_json = set_tif_metadata(czi_file, x_min, x_max, y_min, y_max, z_len)
-                metadata_json = json.dumps(metadata)
+                
+                metadata_json = json.dumps(metadata_json)
 
                 tifffile.imwrite(save_filepath, chunk_image, description=metadata_json)
                 del chunk_image
