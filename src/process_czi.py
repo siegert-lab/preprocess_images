@@ -270,6 +270,7 @@ def chunk_and_save_czi_files(input_folderpath,
                             base_filename = base_filename,
                             max_size_chunk_gb = chunk_size, 
                             channel_name = channel_name)
+        del czi_file
         # Modify the name of the czi file to label that it was chunked
         close_file_handles(file_path)
         modified_file_path = set_chunked_label(file_path)
