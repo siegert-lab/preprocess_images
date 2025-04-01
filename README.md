@@ -158,6 +158,42 @@ This standardization of file names helps facilitate the next processing steps, s
 
 # Chunk czi files in tif files
 
+## Overview
+
+When you have stored the CZI files from the Iof in a tree structure and renamed them, they can be automatically chunked and stored as TIF files. The process is automated to ensure that the files are well organized in a tree structure as follows: `Age/Sex/Animal/Slide`. 
+Some metadata are stored in the TIF files for next steps like tracing of microglia.
+This metadata are:
+   The boundaries of the chunk in microns:
+   "ExtendMinX", "ExtendMaxX", "ExtendMinY", "ExtendMaxY", "ExtendMinZ","ExtendMaxZ", 
+   The size of the chunk in pixels:
+   "SizeX", "SizeY", "SizeZ",
+
+> **Note:** It is the channel containing the microglia that is extracted and chunked. 
+
+Each file is renamed according to this pattern: `microglia_Age_am_Sex_b_Animal_c_Slide_i_seq_j_chunk_k_over_n_x__xmin_xmax__y__ymin_ymax__.tif`  
+Where:  
+- `a` is the age in months  
+- `b` is either "M" (Male) or "F" (Female)  
+- `c` is the index of the animal, starting from 1  
+- `i` is the index of the slide, starting from 0  
+- `j` is the index of brain slice in the slide i
+- `k` is the index of the chunk in the brain slice
+- `n`+1 is the number of chunks
+- `xmin`, `xmax`, `ymin` and `ymax` are the boundaries in pixels of the chunk
+
+This standardization of file names helps facilitate the next processing steps, such as chunking and tracking.
+
+## Important Notes
+
+- **Excel Register Update**: Ensure that the register Excel file is up-to-date. Specifically:  
+  - The **Age** column should contain integers.  
+  - The **Sex** column should use uppercase letters ("M" or "F").  
+  - The **Animal** column should contain integers.  
+  - The **Slide_no** column must contain a unique integer for each row. If two rows share the same number in the **Slide_no** column, they could be mixed up.
+  - The **Slide** column must contain a integer that represent the i-th slice of one brain. So for one brain it is a integer between 0 and n, with n+1 the number of glass slides for the brain. 
+
+- **Register File Update**: After a CZI file is chunked, the register Excel file is updated automatically by adding an "X" in the **chunked** column of the row corresponding to the file that was chunked.
+
 ## How to Chunk czi files and Store as tif files Using the Windows Computer of the Lab
 
 1) The register Excel file containing the metadata of the slides should be closed.
