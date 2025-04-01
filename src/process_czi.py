@@ -281,7 +281,7 @@ def chunk_and_save_czi_files(input_folderpath,
 
         # Now use i and j in your condition
         index = (
-            (register_frame['Age (mo)'].astype(int) == int(age)) &
+            (register_frame['Age (mo)'].astype(int) == int(age[:-1])) &
             (register_frame['Sex'].astype(str) == str(sex)) &
             (register_frame['Animal_replicate'].astype(int) == ii) &  
             (register_frame['Slide'].astype(int) == jj)     
