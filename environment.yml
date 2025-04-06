@@ -5,22 +5,27 @@ channels:
 dependencies:
   - python=3.10
   - numpy=2.2.2
-  - packaging=24.2
   - pandas=2.2.3
+  - matplotlib
+  - scikit-image
   - pillow=11.1.0
+  - tifffile=2025.1.10
   - plotly=5.24.1
+  - ipykernel=6.25.1
+  - packaging=24.2
   - python-dateutil=2.9.0.post0
   - pytz=2024.2
+  - tzdata
   - six=1.17.0
   - tenacity=9.0.0
-  - tifffile=2025.1.10
-  - tzdata
-  - ipykernel=6.25.1
   - paramiko=3.2.0
   - nbformat>=4.2.0
   - openpyxl
   - pip
   - pip:
-    - imaris_ims_file_reader
-    - patchify
-    - aicspylibczi
+      - bioio-ome-zarr
+      - bioio-nd2
+      - pybdv
+      - imaris_ims_file_reader
+      - patchify
+      - aicspylibczi

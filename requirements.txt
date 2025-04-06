@@ -1,10 +1,11 @@
 # Python 3.10 required
-imaris_ims_file_reader
 numpy>=1.21.6
-packaging>=23.1
 pandas>=1.5.3
 pillow>=9.4.0
 plotly>=5.10.0
+matplotlib>=3.5.0
+scikit-image>=0.19.0
+packaging>=23.1
 python-dateutil>=2.8.2
 pytz>=2023.3
 six>=1.16.0
@@ -16,4 +17,8 @@ paramiko>=2.11.0
 nbformat>=4.2.0
 openpyxl
 patchify
+imaris_ims_file_reader
 aicspylibczi
+bioio-ome-zarr
+bioio-nd2
+pybdv
