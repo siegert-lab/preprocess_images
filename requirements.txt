@@ -21,4 +21,4 @@ imaris_ims_file_reader
 aicspylibczi
 bioio-ome-zarr
 bioio-nd2
-pybdv
+opencv-python

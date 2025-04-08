@@ -25,7 +25,7 @@ dependencies:
   - pip:
       - bioio-ome-zarr
       - bioio-nd2
-      - pybdv
       - imaris_ims_file_reader
       - patchify
       - aicspylibczi
+      - opencv-python
