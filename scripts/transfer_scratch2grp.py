@@ -9,9 +9,15 @@ destination_dir = "/mnt/gdrive/ThNe/_Bioimaging/development_retina/"
 
 # List of files to transfer (Modify this list with the exact filenames)
 files_to_transfer = [    
+    "slide_P07_M_001.nd2",
+    "slide_P07_M_002.nd2",
+    "slide_P07_M_003.nd2",
+    "slide_P07_M_004.nd2",
 
-    "slide_P21_F_2001.nd2",
-    "slide_P21_F_2002.nd2",
+    "slide_P21_M_001.nd2",
+    "slide_P21_M_002.nd2",
+    "slide_P21_M_003.nd2",
+    "slide_P21_M_004.nd2",
 
 ]
 

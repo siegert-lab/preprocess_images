@@ -91,10 +91,12 @@ def get_nd2_infoframe_asas(folderpath):
     pattern = r'slide_P(\d+)_([FM])_(\d)00(\d)\.nd2'
     
     # Extract metadata from filenames
+    rows_to_drop = []
+
     for idx, row in info_frame.iterrows():
         basename = row['file_name']
         match = re.match(pattern, basename)
-        
+
         if match:
             # Extract metadata and add to dataframe
             info_frame.loc[idx, 'Age'] = f"P{match.group(1)}"
@@ -102,8 +104,12 @@ def get_nd2_infoframe_asas(folderpath):
             info_frame.loc[idx, 'Animal'] = match.group(3)
             info_frame.loc[idx, 'Side'] = "L" if match.group(4) == "1" else "R"
         else:
-            print(f"Warning: File {basename} does not match the expected pattern and will be skipped for metadata extraction.")
-    
+            print(f"Warning: File {basename} does not match the expected pattern and will be removed.")
+            rows_to_drop.append(idx)
+
+    # Drop rows that didn't match
+    info_frame = info_frame.drop(index=rows_to_drop).reset_index(drop=True)
+
     return info_frame
 
 def set_output_asas(info_frame, output_folderpath):
@@ -149,8 +155,6 @@ def check_already_converted_asas(info_frame, existing_files):
 
 def process_nd2_file(row):
     """Process a single ND2 file."""
-    if 'conversion_status' in row and row['conversion_status'] == 'Already converted':
-        return row['file_name'], 'Skipped'
 
     nd2_file_path = row['file_path']
     output_file_path = row['output_filepath']
@@ -231,7 +235,7 @@ def convert_nd2_to_bdv_asas(input_folderpath, output_folderpath, is_parallel):
         return info_frame
     else:
         print("These files were found")
-        print(info_frame.to_string())
+        print(info_frame.sort_values(by='file_name').to_string(index=False))
         print('')
     
     # Create output filename and filepath columns
@@ -249,12 +253,17 @@ def convert_nd2_to_bdv_asas(input_folderpath, output_folderpath, is_parallel):
     
     # Only check for existing files if any were found
     info_frame = check_already_converted_asas(info_frame = info_frame, existing_files= existing_files)
-    
+
+    # Remove already converted files    
+    filtered_info_frame = info_frame[info_frame['conversion_status'] != 'Already converted']
+    print("These files will be converted")
+    print(filtered_info_frame.sort_values(by='file_name').to_string(index=False))
+    print('')
     # Process each ND2 file in the dataframe
     if is_parallel:
-        info_frame = parallel_process_nd2(info_frame)
+        filtered_info_frame = parallel_process_nd2(filtered_info_frame)
     else:
-        info_frame = loop_process_nd2(info_frame)
+        filtered_info_frame = loop_process_nd2(filtered_info_frame)
 
     # Get updated list of files in the output folder after conversion
     print("\nGetting final state of output folder...\n")
