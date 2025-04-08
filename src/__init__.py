@@ -5,4 +5,4 @@ from .process_ims import *
 from .process_nd2 import *
 from .utils import *
 from .plot import *
-from .fuse_n5_xml import *
+from .fuse_n5_xml_to_tif import *

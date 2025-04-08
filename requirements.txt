@@ -20,5 +20,6 @@ patchify
 imaris_ims_file_reader
 aicspylibczi
 bioio-ome-zarr
+zarr[jupyter]
 bioio-nd2
 opencv-python

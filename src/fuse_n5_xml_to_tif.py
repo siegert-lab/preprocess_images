@@ -7,6 +7,7 @@ import cv2
 import json
 from tifffile import imwrite
 from tifffile import TiffWriter
+from scipy.ndimage import zoom
 
 def parse_affine(text):
     values = list(map(float, text.strip().split()))
@@ -62,58 +63,6 @@ def create_blending_mask(shape, overlap_fraction=0.1):
     # Outer product to create full 3D blending mask
     return wz[:, None, None] * wy[None, :, None] * wx[None, None, :]
 
-def fuse_channel_2_tiles(n5_path, tile_positions, voxel_size, output_path, overlap_fraction=0.1):
-    z = zarr.open(n5_path, mode='r')
-
-    selected_setups = sorted(
-        [k for k in z.group_keys() if k.startswith("setup") and int(k[5:]) % 4 == 2],
-        key=lambda s: int(s[5:])
-    )
-
-    print(f"Selected setups for channel 2: {selected_setups}")
-    tiles = []
-    positions_px = []
-
-    print(f'{len(selected_setups)} tiles to process')
-    for i, setup in enumerate(selected_setups, 1):
-        sid = int(setup[5:])
-        data = z[f'{setup}/timepoint0/s0'][:]
-        offset_um = np.array(tile_positions[sid])
-        offset_px = np.round(offset_um[::-1] / voxel_size).astype(int)
-
-        print(f'Tile {i}/{len(selected_setups)} loaded')
-        tiles.append(data)
-        positions_px.append(offset_px)
-
-    shapes = [t.shape for t in tiles]
-    mins = np.min(positions_px, axis=0)
-    maxs = np.max([pos + shape for pos, shape in zip(positions_px, shapes)], axis=0)
-
-    size = maxs - mins
-    print(f'The size of the fused image is {size}')
-    fused = np.zeros(size, dtype=np.float32)
-    weight = np.zeros(size, dtype=np.float32)
-
-    for tile, pos in zip(tiles, positions_px):
-        pos = pos - mins
-        z0, y0, x0 = pos
-        z1, y1, x1 = pos + tile.shape
-
-        mask = create_blending_mask(tile.shape, overlap_fraction)
-        fused[z0:z1, y0:y1, x0:x1] += tile * mask
-        weight[z0:z1, y0:y1, x0:x1] += mask
-
-    fused = fused / np.maximum(weight, 1e-8)
-    fused = np.clip(fused, 0, 65535).astype(np.uint16)
-    metadata = {}
-    # Save metadata as a JSON string
-    imwrite(
-        output_path,
-        fused,
-        metadata=metadata  # Optional structured metadata (OME-style)
-    )
-    print(f"Blended fused channel 2 saved to {output_path}")
-
 def downsample_tile_cv2(tile, factor=2, interpolation=cv2.INTER_AREA):
     """
     Downsample a 3D tile (Z, Y, X) by a factor in Y and X using OpenCV.
@@ -126,8 +75,6 @@ def downsample_tile_cv2(tile, factor=2, interpolation=cv2.INTER_AREA):
         downsampled[i] = cv2.resize(tile[i], dsize=(x // factor, y // factor), interpolation=interpolation)
     return downsampled
 
-from scipy.ndimage import zoom
-
 def downsample_tile(tile, xy_factor=2, z_factor=1, order=1):
     """
     Downsample a 3D tile (Z, Y, X) with interpolation using `scipy.ndimage.zoom`.
@@ -137,8 +84,14 @@ def downsample_tile(tile, xy_factor=2, z_factor=1, order=1):
     zoom_factors = [1 / z_factor, 1 / xy_factor, 1 / xy_factor]
     return zoom(tile, zoom_factors, order=order).astype(np.float32)
 
+# Pixel size in microns
+pix_size = {
+    'x': 0.339024328759285,
+    'y': 0.339024328759285,
+    'z': 0.9
+}
 
-def fuse_channel_2_tiles(n5_path, tile_positions, channel, voxel_size, output_path, overlap_fraction=0.1, metadata=None, downsample_factor_xy=2, downsample_factor_z = 2):
+def fuse_channel_2_tiles(n5_path, tile_positions, channel, output_path, overlap_fraction=0.1, pix_size=pix_size, downsample_factor_xy=2, downsample_factor_z = 2):
     z = zarr.open(n5_path, mode='r')
 
     selected_setups = sorted(
@@ -154,7 +107,7 @@ def fuse_channel_2_tiles(n5_path, tile_positions, channel, voxel_size, output_pa
     for i, setup in enumerate(selected_setups, 1):
         sid = int(setup[5:])
         data = z[f'{setup}/timepoint0/s0'][:]
-        offset_um = np.array(tile_positions[sid])
+        offset_px = np.round(np.array(tile_positions[sid])[::-1]).astype(int)
 
         # Downsample tile before fusion
         if downsample_factor_xy == 1:
@@ -162,11 +115,10 @@ def fuse_channel_2_tiles(n5_path, tile_positions, channel, voxel_size, output_pa
         else:
             tile = downsample_tile(tile=data, xy_factor=downsample_factor_xy, z_factor=downsample_factor_z, order=1)
         # Adjust pixel offset accordingly (voxel_size is unchanged)
-        offset_px = np.round(offset_um[::-1] / voxel_size).astype(int)
         offset_px[0] = offset_px[0] // downsample_factor_z  # downsample Z
         offset_px[1:] = offset_px[1:] // downsample_factor_xy  # downsample Y & X offsets
 
-        print(f'Tile {i}/{len(selected_setups)} positioned')
+        print(f'Tile {i}/{len(selected_setups)} of size {tile.shape} positioned')
         tiles.append(tile)
         positions_px.append(offset_px)
 
@@ -179,6 +131,20 @@ def fuse_channel_2_tiles(n5_path, tile_positions, channel, voxel_size, output_pa
     fused = np.zeros(size, dtype=np.float32)
     weight = np.zeros(size, dtype=np.float32)
     print(f"Memory size of 'fused': {fused.nbytes / 1024 ** 3:.2f} GB")
+
+    metadata = {
+        # Physical dimensions in microns
+        "ExtendMinX": 0,
+        "ExtendMaxX": size[2] * pix_size['x'] * downsample_factor_xy,
+        "ExtendMinY": 0,
+        "ExtendMaxY": size[1] * pix_size['y'] * downsample_factor_xy,
+        "ExtendMinZ": 0,
+        "ExtendMaxZ": size[0] * pix_size['z'] * downsample_factor_z,
+        # Dimensions in pixels
+        "SizeX": size[2],
+        "SizeY": size[1],
+        "SizeZ": size[0],
+    }
 
     i = 0
     for tile, pos in zip(tiles, positions_px):
