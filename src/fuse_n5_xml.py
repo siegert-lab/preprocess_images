@@ -7,6 +7,7 @@ import cv2
 import json
 from tifffile import imwrite
 from tifffile import TiffWriter
+from scipy.ndimage import zoom
 
 def parse_affine(text):
     values = list(map(float, text.strip().split()))
@@ -126,8 +127,6 @@ def downsample_tile_cv2(tile, factor=2, interpolation=cv2.INTER_AREA):
         downsampled[i] = cv2.resize(tile[i], dsize=(x // factor, y // factor), interpolation=interpolation)
     return downsampled
 
-from scipy.ndimage import zoom
-
 def downsample_tile(tile, xy_factor=2, z_factor=1, order=1):
     """
     Downsample a 3D tile (Z, Y, X) with interpolation using `scipy.ndimage.zoom`.
@@ -137,8 +136,14 @@ def downsample_tile(tile, xy_factor=2, z_factor=1, order=1):
     zoom_factors = [1 / z_factor, 1 / xy_factor, 1 / xy_factor]
     return zoom(tile, zoom_factors, order=order).astype(np.float32)
 
+# Pixel size in microns
+pix_size = {
+    'x': 0.339024328759285,
+    'y': 0.339024328759285,
+    'z': 0.9
+}
 
-def fuse_channel_2_tiles(n5_path, tile_positions, channel, voxel_size, output_path, overlap_fraction=0.1, metadata=None, downsample_factor_xy=2, downsample_factor_z = 2):
+def fuse_channel_2_tiles(n5_path, tile_positions, channel, voxel_size, output_path, overlap_fraction=0.1, pix_size=pix_size, downsample_factor_xy=2, downsample_factor_z = 2):
     z = zarr.open(n5_path, mode='r')
 
     selected_setups = sorted(
@@ -166,7 +171,7 @@ def fuse_channel_2_tiles(n5_path, tile_positions, channel, voxel_size, output_pa
         offset_px[0] = offset_px[0] // downsample_factor_z  # downsample Z
         offset_px[1:] = offset_px[1:] // downsample_factor_xy  # downsample Y & X offsets
 
-        print(f'Tile {i}/{len(selected_setups)} positioned')
+        print(f'Tile {i}/{len(selected_setups)} of size {tile.shape} positioned')
         tiles.append(tile)
         positions_px.append(offset_px)
 
@@ -179,6 +184,20 @@ def fuse_channel_2_tiles(n5_path, tile_positions, channel, voxel_size, output_pa
     fused = np.zeros(size, dtype=np.float32)
     weight = np.zeros(size, dtype=np.float32)
     print(f"Memory size of 'fused': {fused.nbytes / 1024 ** 3:.2f} GB")
+
+    metadata = {
+        # Physical dimensions in microns
+        "ExtendMinX": 0,
+        "ExtendMaxX": size[2] * pix_size['x'] * downsample_factor_xy,
+        "ExtendMinY": 0,
+        "ExtendMaxY": size[1] * pix_size['y'] * downsample_factor_xy,
+        "ExtendMinZ": 0,
+        "ExtendMaxZ": size[0] * pix_size['z'] * downsample_factor_z,
+        # Dimensions in pixels
+        "SizeX": size[2],
+        "SizeY": size[1],
+        "SizeZ": size[0],
+    }
 
     i = 0
     for tile, pos in zip(tiles, positions_px):
