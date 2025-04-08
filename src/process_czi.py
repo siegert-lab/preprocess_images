@@ -10,7 +10,7 @@ import re
 # import xml.etree.ElementTree as ET
 import math
 import pandas as pd
-from utils import divide_image_into_mesh, generate_mesh_coordinates, get_nb_pix_chunk_l, downsample_by_2, import_register, filter_frame, get_base_filename, set_chunked_label, close_file_handles 
+from utils import divide_image_into_mesh, generate_mesh_coordinates, get_nb_pix_chunk_l, downsample_by_2, filter_frame, get_base_filename, set_chunked_label, close_file_handles 
 
 from io_images import get_images_infoframe
 
@@ -219,7 +219,7 @@ def chunk_and_save_czi(czi_file,
                 
                 metadata_json = json.dumps(metadata_json)
 
-                tifffile.imwrite(save_filepath, chunk_image, description=metadata_json)
+                tifffile.imwrite(save_filepath, chunk_image, description=metadata_json, bigtiff=True)
                 del chunk_image
                 print(f"chunk {nn} of sequence {s} is saved in " + save_filepath)
         else:
