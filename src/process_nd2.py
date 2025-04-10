@@ -187,7 +187,7 @@ def parallel_process_nd2(info_frame):
     num_cpus = max(1, int(total_cpus * 0.5))
     # num_cpus = 5
     with multiprocessing.Pool(num_cpus) as pool:
-        results = list(tqdm(pool.imap(process_nd2_file, [row for _, row in info_frame.itertuples()]), 
+        results = list(tqdm(pool.imap(process_nd2_file, [row for _, row in info_frame.iterrows()]), 
                             total=len(info_frame), 
                             desc="Converting ND2 files"))
 
